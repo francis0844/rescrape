@@ -159,19 +159,19 @@ export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
                 <div className="review-card-title">
                   <a href={source.site_url} target="_blank" rel="noreferrer">
                     {source.site_url}
-                    <ExternalLink size={14} aria-hidden="true" style={{ marginLeft: 4 }} />
+                    <ExternalLink size={14} aria-hidden="true" />
                   </a>
                   <p className="row-meta">{source.title}</p>
                 </div>
-                <div className="stack-md" style={{ textAlign: "right" }}>
+                <div className="review-card-status">
                   <span className="status-pill" data-status={source.status}>
                     {source.status}
                   </span>
                   {typeof source.ai_confidence === "number" ? (
                     <div className="confidence-row">
-                      <div className="confidence-track">
+                      <div className="progress-track progress-track--inline">
                         <div
-                          className="confidence-fill"
+                          className="progress-fill"
                           style={{ width: `${Math.round(source.ai_confidence * 100)}%` }}
                         />
                       </div>

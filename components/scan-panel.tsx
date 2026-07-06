@@ -187,8 +187,8 @@ export function ScanPanel({ pendingCount, initialJob }: ScanPanelProps) {
 
       {job ? (
         <div className="stack-md">
-          <div className="scan-progress-track">
-            <div className="scan-progress-fill" style={{ width: `${progressPct}%` }} />
+          <div className="progress-track">
+            <div className="progress-fill" style={{ width: `${progressPct}%` }} />
           </div>
           <div className="scan-status-row">
             {running && currentSite ? (
