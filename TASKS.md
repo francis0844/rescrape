@@ -11,7 +11,7 @@
 ---
 
 ## Milestone 0 — Foundation
-- [ ] **T0.1** Scaffold Next.js (App Router) + TypeScript; connect GitHub repo + Vercel auto-deploy.
+- [~] **T0.1** Scaffold Next.js (App Router) + TypeScript; connect GitHub repo + Vercel auto-deploy. Intent: build the Phase 0 foundation only, including typed stubs, Supabase auth/client wiring, schema migration, empty routed pages, and an impeccable design baseline without Phase 1 feature behavior.
 - [ ] **T0.2** Add Supabase project; wire client + service-role clients; add `.env.example`.
 - [ ] **T0.3** Create DB migration for all tables in CONTEXT_PLAN §4.
 - [ ] **T0.4** Supabase Auth single-login gate (app not public).
