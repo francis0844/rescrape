@@ -888,6 +888,111 @@ textarea:focus-visible {
   min-height: 2.5rem;
 }
 
+/* Motion: one staggered entrance per page load, not scattered micro-interactions. */
+.page-frame > .page-header,
+.page-frame > .panel,
+.page-frame > section {
+  animation: rise-in 260ms ease-out backwards;
+}
+
+.page-frame > .page-header {
+  animation-delay: 0ms;
+}
+
+.page-frame > .panel:nth-of-type(1),
+.page-frame > section:nth-of-type(1) {
+  animation-delay: 40ms;
+}
+
+.page-frame > .panel:nth-of-type(2),
+.page-frame > section:nth-of-type(2) {
+  animation-delay: 80ms;
+}
+
+.page-frame > .panel:nth-of-type(3),
+.page-frame > section:nth-of-type(3) {
+  animation-delay: 120ms;
+}
+
+.page-frame > .panel:nth-of-type(4),
+.page-frame > section:nth-of-type(4) {
+  animation-delay: 160ms;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.button:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.status-pill,
+.chip {
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--surface-strong);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    oklch(1 0 0 / 35%),
+    transparent
+  );
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton-header {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.skeleton-title {
+  width: 12rem;
+  height: 1.5rem;
+}
+
+.skeleton-kicker {
+  width: min(100%, 32rem);
+  height: 0.9375rem;
+}
+
+.skeleton-panel {
+  height: 8rem;
+}
+
+.skeleton-panel--tall {
+  height: 14rem;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     grid-template-columns: 1fr;

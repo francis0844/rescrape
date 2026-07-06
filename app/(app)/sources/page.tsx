@@ -5,6 +5,7 @@ import { runSearch } from "@/app/actions/discovery";
 import { ReviewQueue } from "@/components/review-queue";
 import { ScanPanel } from "@/components/scan-panel";
 import { StatusMessage } from "@/components/status-message";
+import { SubmitButton } from "@/components/submit-button";
 import {
   getActiveScanJob,
   getAppSettings,
@@ -186,14 +187,14 @@ export default async function SourcesPage({ searchParams }: SourcesPageProps) {
         </div>
 
         <form action={runSearch}>
-          <button
+          <SubmitButton
             className="button fit-content"
-            type="submit"
             disabled={!activeKeywords.length || !enabledProviders.length}
+            pendingLabel="Searching..."
           >
             <Play size={16} aria-hidden="true" />
             Run search
-          </button>
+          </SubmitButton>
         </form>
         {!activeKeywords.length || !enabledProviders.length ? (
           <p className="panel-copy">

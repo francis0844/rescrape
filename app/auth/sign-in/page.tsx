@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { signIn, signInWithGoogle } from "@/app/actions/auth";
 import { StatusMessage } from "@/components/status-message";
+import { SubmitButton } from "@/components/submit-button";
 
 function GoogleIcon() {
   return (
@@ -56,10 +57,13 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
         <form className="oauth-form" action={signInWithGoogle}>
           <input type="hidden" name="next" value={next} />
-          <button className="button button-secondary oauth-button" type="submit">
+          <SubmitButton
+            className="button button-secondary oauth-button"
+            pendingLabel="Redirecting to Google..."
+          >
             <GoogleIcon />
             Continue with Google
-          </button>
+          </SubmitButton>
         </form>
 
         <div className="auth-divider">or</div>
@@ -79,9 +83,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               {params.error}
             </p>
           ) : null}
-          <button className="button" type="submit">
+          <SubmitButton className="button" pendingLabel="Signing in...">
             Sign in
-          </button>
+          </SubmitButton>
         </form>
 
         <p className="auth-footer-link">

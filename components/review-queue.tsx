@@ -1,9 +1,11 @@
 "use client";
 
-import { Check, ExternalLink, RotateCcw, X } from "lucide-react";
+import { Check, ExternalLink, Loader2, RotateCcw, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import { approveSource, bulkUpdateStatus, rejectSource, rescanSourceAction, saveSourceNote } from "@/app/actions/review";
+import { SubmitButton } from "@/components/submit-button";
 import type { SourceDiscoveryInfo, SourceRow } from "@/lib/app-data";
 
 type ReviewQueueProps = {
@@ -58,8 +60,10 @@ function formatSamplePreview(preview: unknown) {
 }
 
 export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
+  const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
+  const [pendingAction, setPendingAction] = useState<"approved" | "rejected" | null>(null);
   const [bulkMessage, setBulkMessage] = useState<string | null>(null);
 
   const allSelected = sources.length > 0 && selected.size === sources.length;
@@ -89,11 +93,14 @@ export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
       return;
     }
 
+    setBulkMessage(null);
+    setPendingAction(status);
     startTransition(async () => {
       const result = await bulkUpdateStatus(selectedIds, status);
       setBulkMessage(`${result.updated} source(s) ${status}.`);
       setSelected(new Set());
-      window.location.reload();
+      setPendingAction(null);
+      router.refresh();
     });
   }
 
@@ -118,19 +125,39 @@ export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
             className="button button-secondary"
             type="button"
             disabled={!selectedIds.length || isPending}
+            aria-busy={pendingAction === "approved"}
             onClick={() => runBulk("approved")}
           >
-            <Check size={16} aria-hidden="true" />
-            Bulk approve
+            {pendingAction === "approved" ? (
+              <>
+                <Loader2 size={16} aria-hidden="true" className="spin" />
+                Approving...
+              </>
+            ) : (
+              <>
+                <Check size={16} aria-hidden="true" />
+                Bulk approve
+              </>
+            )}
           </button>
           <button
             className="button button-danger"
             type="button"
             disabled={!selectedIds.length || isPending}
+            aria-busy={pendingAction === "rejected"}
             onClick={() => runBulk("rejected")}
           >
-            <X size={16} aria-hidden="true" />
-            Bulk reject
+            {pendingAction === "rejected" ? (
+              <>
+                <Loader2 size={16} aria-hidden="true" className="spin" />
+                Rejecting...
+              </>
+            ) : (
+              <>
+                <X size={16} aria-hidden="true" />
+                Bulk reject
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -227,33 +254,33 @@ export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
                   placeholder="Reviewer note"
                   defaultValue={source.human_note ?? ""}
                 />
-                <button className="button button-secondary" type="submit">
+                <SubmitButton className="button button-secondary" pendingLabel="Saving...">
                   Save note
-                </button>
+                </SubmitButton>
               </form>
 
               <div className="review-card-actions">
                 <form action={rescanSourceAction}>
                   <input type="hidden" name="id" value={source.id} />
-                  <button className="button button-secondary" type="submit">
+                  <SubmitButton className="button button-secondary" pendingLabel="Re-scanning...">
                     <RotateCcw size={16} aria-hidden="true" />
                     Re-scan
-                  </button>
+                  </SubmitButton>
                 </form>
                 <div className="row-actions">
                   <form action={rejectSource}>
                     <input type="hidden" name="id" value={source.id} />
-                    <button className="button button-danger" type="submit">
+                    <SubmitButton className="button button-danger" pendingLabel="Rejecting...">
                       <X size={16} aria-hidden="true" />
                       Reject
-                    </button>
+                    </SubmitButton>
                   </form>
                   <form action={approveSource}>
                     <input type="hidden" name="id" value={source.id} />
-                    <button className="button" type="submit">
+                    <SubmitButton className="button" pendingLabel="Approving...">
                       <Check size={16} aria-hidden="true" />
                       Approve
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
               </div>

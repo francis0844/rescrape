@@ -7,6 +7,7 @@ import {
 } from "@/app/actions/keywords";
 import { CsvKeywordImporter } from "@/components/csv-keyword-importer";
 import { StatusMessage } from "@/components/status-message";
+import { SubmitButton } from "@/components/submit-button";
 import { getKeywords } from "@/lib/app-data";
 
 export const dynamic = "force-dynamic";
@@ -59,10 +60,10 @@ export default async function KeywordsPage({ searchParams }: KeywordsPageProps) 
             <input type="checkbox" name="active" defaultChecked />
             <span>Active</span>
           </label>
-          <button className="button fit-content" type="submit">
+          <SubmitButton className="button fit-content" pendingLabel="Creating...">
             <Plus size={16} aria-hidden="true" />
             Create keyword
-          </button>
+          </SubmitButton>
         </form>
       </section>
 
@@ -121,18 +122,18 @@ export default async function KeywordsPage({ searchParams }: KeywordsPageProps) 
                   </label>
                 </div>
                 <div className="row-actions">
-                  <button className="button button-secondary" type="submit">
+                  <SubmitButton className="button button-secondary" pendingLabel="Saving...">
                     <Save size={16} aria-hidden="true" />
                     Save
-                  </button>
-                  <button
+                  </SubmitButton>
+                  <SubmitButton
                     className="button button-danger"
                     formAction={deleteKeyword}
-                    type="submit"
+                    pendingLabel="Deleting..."
                   >
                     <Trash2 size={16} aria-hidden="true" />
                     Delete
-                  </button>
+                  </SubmitButton>
                 </div>
               </form>
             ))}

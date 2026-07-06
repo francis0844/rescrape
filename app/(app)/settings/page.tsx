@@ -5,6 +5,7 @@ import {
   updateSearchProvider
 } from "@/app/actions/settings";
 import { StatusMessage } from "@/components/status-message";
+import { SubmitButton } from "@/components/submit-button";
 import { getAppSettings, getSearchProviders } from "@/lib/app-data";
 
 export const dynamic = "force-dynamic";
@@ -98,10 +99,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
                   />
                 </label>
               </div>
-              <button className="button row-action" type="submit">
+              <SubmitButton className="button row-action" pendingLabel="Saving...">
                 <Save size={16} aria-hidden="true" />
                 Save provider
-              </button>
+              </SubmitButton>
             </form>
           ))}
         </div>
@@ -187,10 +188,10 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
               />
             </label>
           </div>
-          <button className="button fit-content" type="submit">
+          <SubmitButton className="button fit-content" pendingLabel="Saving...">
             <Save size={16} aria-hidden="true" />
             Save settings
-          </button>
+          </SubmitButton>
         </form>
       </section>
     </div>

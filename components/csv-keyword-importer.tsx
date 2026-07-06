@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, FileUp } from "lucide-react";
+import { Download, FileUp, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
@@ -289,9 +289,17 @@ export function CsvKeywordImporter() {
             className="button"
             type="button"
             disabled={isPending || !topicMapped}
+            aria-busy={isPending}
             onClick={submitImport}
           >
-            {isPending ? "Importing..." : `Import ${mappedRows.length} rows`}
+            {isPending ? (
+              <>
+                <Loader2 size={16} aria-hidden="true" className="spin" />
+                Importing...
+              </>
+            ) : (
+              `Import ${mappedRows.length} rows`
+            )}
           </button>
         </div>
       ) : null}

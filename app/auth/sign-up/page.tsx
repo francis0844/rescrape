@@ -2,6 +2,7 @@ import { UserPlus } from "lucide-react";
 import Link from "next/link";
 
 import { signUp } from "@/app/actions/auth";
+import { SubmitButton } from "@/components/submit-button";
 
 type SignUpPageProps = {
   searchParams: Promise<{
@@ -58,9 +59,9 @@ export default async function SignUpPage({ searchParams }: SignUpPageProps) {
               {params.error}
             </p>
           ) : null}
-          <button className="button" type="submit">
+          <SubmitButton className="button" pendingLabel="Creating account...">
             Create account
-          </button>
+          </SubmitButton>
         </form>
 
         <p className="auth-footer-link">

@@ -12,6 +12,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { signOut } from "@/app/actions/auth";
+import { SubmitButton } from "@/components/submit-button";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Gauge },
@@ -61,10 +62,10 @@ export function AppShell({ children, email }: AppShellProps) {
             <KeyRound size={14} aria-hidden="true" /> {email ?? "Signed in"}
           </div>
           <form action={signOut}>
-            <button className="button button-secondary" type="submit">
+            <SubmitButton className="button button-secondary" pendingLabel="Signing out...">
               <LogOut size={16} aria-hidden="true" />
               Sign out
-            </button>
+            </SubmitButton>
           </form>
         </div>
       </aside>
