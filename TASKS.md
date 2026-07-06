@@ -25,9 +25,9 @@
 - [x] **T1.4** CSV import with flexible header mapping + append/dedup + summary (CONTEXT_PLAN §7).
 
 ## Milestone 2 — Phase 1 (Discovery)
-- [~] **T2.1** Run-search: build queries from active keywords, enforce enabled-providers boundary. Intent: implement Milestone 2 only, with one query per active keyword, enabled-provider enforcement through the provider registry, Tavily execution inside the SearchProvider implementation, site-level source dedup, search_runs summaries, and no crawl/judge/review behavior.
-- [ ] **T2.2** Tavily call w/ result cap; site-level dedup; write sources + source_discoveries.
-- [ ] **T2.3** Run summary (queries, new sites, est. credits); graceful `partial` on credit limit.
+- [x] **T2.1** Run-search: build queries from active keywords, enforce enabled-providers boundary.
+- [x] **T2.2** Tavily call w/ result cap; site-level dedup; write sources + source_discoveries.
+- [x] **T2.3** Run summary (queries, new sites, est. credits); graceful `partial` on credit limit.
 
 ## Milestone 3 — Phase 2 (Verification)
 - [ ] **T3.1** "Scan all sites": scan_jobs + chunked serverless loop (browser-driven) + Resume.
@@ -48,3 +48,4 @@
 - _(each session: append date, tool used (Codex/Claude Code), what changed, next task)_
 - 2026-07-07, Codex: completed Milestone 0 foundation. Added Next.js App Router + TypeScript scaffold, exact `.env.example`, Supabase browser/server/service-role clients, single SQL migration with required tables/enums/seeds, Supabase Auth gate, typed provider/agent stubs with no real API calls, empty Dashboard/Keywords/Sources/Settings routes, and `impeccable teach` PRODUCT/DESIGN baseline. Verified `npm run build`, `npm run dev`, service-role env did not appear in checked build bundles, and no subject-specific terms were introduced. Next task: T1.1 Settings search provider whitelist CRUD.
 - 2026-07-07, Codex: completed Milestone 1 Settings & lists. Added Settings provider whitelist controls for the seeded provider row, global budget/crawl settings including include_domains, keyword create/edit/delete/toggle forms, and CSV import with header detection, manual mapping, template download, append-by-default dedup, explicit replace confirmation, row validation, row cap, and import summary. Verified `npm run build`, unauthenticated Settings/Keywords redirects, no service-role marker in client static assets, and no direct Tavily/OpenAI calls. Next task: T2.1 run-search builder with enabled-provider enforcement.
+- 2026-07-07, Codex: completed Milestone 2 Discovery. Added the Tavily SearchProvider implementation, run builder with one query per active keyword, enabled-provider enforcement, include_domains scoping, result caps, site-root normalization, source/source_discovery writes, search_runs snapshots and summaries, partial status on Tavily credit/rate limit responses, and the Sources run-search UI. Verified `npm run build`, responsive fallback screenshots, no service-role marker in client static assets, no direct Tavily/OpenAI calls outside provider seams, and no subject-specific terms. Next task: T3.1 scan_jobs + chunked verification loop.
