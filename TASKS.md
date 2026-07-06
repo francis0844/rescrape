@@ -25,7 +25,7 @@
 - [x] **T1.4** CSV import with flexible header mapping + append/dedup + summary (CONTEXT_PLAN §7).
 
 ## Milestone 2 — Phase 1 (Discovery)
-- [ ] **T2.1** Run-search: build queries from active keywords, enforce enabled-providers boundary.
+- [~] **T2.1** Run-search: build queries from active keywords, enforce enabled-providers boundary. Intent: implement Milestone 2 only, with one query per active keyword, enabled-provider enforcement through the provider registry, Tavily execution inside the SearchProvider implementation, site-level source dedup, search_runs summaries, and no crawl/judge/review behavior.
 - [ ] **T2.2** Tavily call w/ result cap; site-level dedup; write sources + source_discoveries.
 - [ ] **T2.3** Run summary (queries, new sites, est. credits); graceful `partial` on credit limit.
 
