@@ -36,7 +36,7 @@
 - [x] **T3.4** Live progress via Supabase Realtime (current site + scan_step).
 
 ## Milestone 4 — Phase 3 (Review) + delivery
-- [ ] **T4.1** Review queue: cards w/ AI insight, evidence URLs, sample preview, filters.
+- [~] **T4.1** Review queue: cards w/ AI insight, evidence URLs, sample preview, filters. *Intent: add a "view" tab (Review/All/Approved) + status/keyword/run/confidence filters to the existing Sources table, backed by a new review-card list showing AI verdict/confidence/reason/extractable-field chips/sample preview/evidence URLs/discovering keyword+run per source. No new screen — lives on /sources.*
 - [ ] **T4.2** Approve/Reject/Re-scan/note + bulk actions (human-only terminal states).
 - [ ] **T4.3** Approved (trusted) sources saved filter/tab on Sources.
 - [ ] **T4.4** Dashboard (counts + recent runs).
