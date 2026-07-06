@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getAppSettings } from "@/lib/app-data";
+import type { SearchProvider } from "@/lib/providers/search-provider";
 import { getEnabledSearchProviders, getVerificationAgent } from "@/lib/providers/registry";
 import type { VerificationAgent, VerificationRequest } from "@/lib/providers/verification-agent";
 import { crawlSite } from "@/lib/verification/crawler";
@@ -72,6 +73,147 @@ async function judgeWithRetry(agent: VerificationAgent, request: VerificationReq
   }
 
   throw lastError;
+}
+
+type ProcessableSource = {
+  id: string;
+  site_url: string;
+};
+
+/**
+ * Crawls + judges a single source and persists the result. Shared by the chunked
+ * "Scan all sites" loop and the Phase 3 per-source Re-scan action so both paths move
+ * a source through the same pending → scanning → {ai_approved|ai_rejected|needs_review}
+ * rule (never approved/rejected — that stays human-only).
+ */
+async function processSource(
+  source: ProcessableSource,
+  settings: Awaited<ReturnType<typeof getAppSettings>>,
+  extractProvider: SearchProvider | null,
+  agent: VerificationAgent
+): Promise<void> {
+  const supabase = createSupabaseServiceRoleClient();
+
+  const onStep = async (step: string) => {
+    await supabase.from("sources").update({ scan_step: step }).eq("id", source.id);
+  };
+
+  const outcome = await crawlSite({
+    siteUrl: source.site_url,
+    maxPages: settings.crawl_max_pages,
+    maxDepth: settings.crawl_max_depth,
+    charBudget: settings.crawl_char_budget,
+    extractProvider,
+    onStep
+  });
+
+  if (outcome.kind === "blocked") {
+    await supabase
+      .from("sources")
+      .update({
+        status: "needs_review",
+        ai_verdict: "needs_review",
+        ai_confidence: null,
+        ai_reason: "crawling disallowed",
+        extractable_fields: null,
+        sample_preview: null,
+        evidence_urls: [],
+        scan_step: null,
+        last_scanned_at: new Date().toISOString()
+      })
+      .eq("id", source.id);
+    return;
+  }
+
+  if (outcome.kind === "empty") {
+    await supabase
+      .from("sources")
+      .update({
+        status: "needs_review",
+        ai_verdict: "needs_review",
+        ai_confidence: null,
+        ai_reason: outcome.message,
+        extractable_fields: null,
+        sample_preview: null,
+        evidence_urls: [],
+        scan_step: null,
+        last_scanned_at: new Date().toISOString()
+      })
+      .eq("id", source.id);
+    return;
+  }
+
+  await onStep("judging");
+  const evidenceUrls = outcome.pages.map((page) => page.url);
+
+  try {
+    const verdict = await judgeWithRetry(agent, {
+      sourceId: source.id,
+      siteUrl: source.site_url,
+      evidenceUrls,
+      pageText: outcome.combinedText
+    });
+    const statusForVerdict = {
+      approve: "ai_approved",
+      reject: "ai_rejected",
+      needs_review: "needs_review"
+    } as const;
+
+    await onStep("verdict");
+    await supabase
+      .from("sources")
+      .update({
+        status: statusForVerdict[verdict.verdict],
+        ai_verdict: verdict.verdict,
+        ai_confidence: verdict.confidence,
+        ai_reason: verdict.reason,
+        extractable_fields: verdict.extractableFields,
+        sample_preview: verdict.samplePreview,
+        evidence_urls: verdict.evidenceUrls,
+        scan_step: null,
+        last_scanned_at: new Date().toISOString()
+      })
+      .eq("id", source.id);
+  } catch (error) {
+    // Repeated agent failure: never falsely reject — leave pending so a future scan retries.
+    await supabase
+      .from("sources")
+      .update({
+        status: "pending",
+        ai_reason:
+          error instanceof Error ? error.message : "Verification agent failed after retries.",
+        scan_step: null,
+        last_scanned_at: new Date().toISOString()
+      })
+      .eq("id", source.id);
+  }
+}
+
+/** Re-scans a single source on demand (Phase 3 action): resets to scanning, reuses the
+ *  same crawl+judge worker, and preserves everything else (human_note, discoveries, history). */
+export async function rescanSource(sourceId: string): Promise<void> {
+  const supabase = createSupabaseServiceRoleClient();
+  const { data: source, error } = await supabase
+    .from("sources")
+    .select("id, site_url")
+    .eq("id", sourceId)
+    .single();
+
+  if (error) {
+    throw error;
+  }
+
+  await supabase
+    .from("sources")
+    .update({ status: "scanning", scan_step: "fetching" })
+    .eq("id", sourceId);
+
+  const settings = await getAppSettings();
+  const providers = await getEnabledSearchProviders();
+  const extractProvider = providers[0] ?? null;
+  const agent = getVerificationAgent();
+
+  await processSource(source as ProcessableSource, settings, extractProvider, agent);
 }
 
 /** Resumes the active job if one exists, otherwise starts a fresh one over currently eligible sources. */
@@ -177,95 +319,7 @@ export async function runScanChunk(jobId: string): Promise<ScanChunkResult> {
       .update({ current_source_id: source.id, status: "running" })
       .eq("id", jobId);
 
-    const onStep = async (step: string) => {
-      await supabase.from("sources").update({ scan_step: step }).eq("id", source.id);
-    };
-
-    const outcome = await crawlSite({
-      siteUrl: source.site_url,
-      maxPages: settings.crawl_max_pages,
-      maxDepth: settings.crawl_max_depth,
-      charBudget: settings.crawl_char_budget,
-      extractProvider,
-      onStep
-    });
-
-    if (outcome.kind === "blocked") {
-      await supabase
-        .from("sources")
-        .update({
-          status: "needs_review",
-          ai_verdict: "needs_review",
-          ai_confidence: null,
-          ai_reason: "crawling disallowed",
-          extractable_fields: null,
-          sample_preview: null,
-          evidence_urls: [],
-          scan_step: null,
-          last_scanned_at: new Date().toISOString()
-        })
-        .eq("id", source.id);
-    } else if (outcome.kind === "empty") {
-      await supabase
-        .from("sources")
-        .update({
-          status: "needs_review",
-          ai_verdict: "needs_review",
-          ai_confidence: null,
-          ai_reason: outcome.message,
-          extractable_fields: null,
-          sample_preview: null,
-          evidence_urls: [],
-          scan_step: null,
-          last_scanned_at: new Date().toISOString()
-        })
-        .eq("id", source.id);
-    } else {
-      await onStep("judging");
-      const evidenceUrls = outcome.pages.map((page) => page.url);
-
-      try {
-        const verdict = await judgeWithRetry(agent, {
-          sourceId: source.id,
-          siteUrl: source.site_url,
-          evidenceUrls,
-          pageText: outcome.combinedText
-        });
-        const statusForVerdict = {
-          approve: "ai_approved",
-          reject: "ai_rejected",
-          needs_review: "needs_review"
-        } as const;
-
-        await onStep("verdict");
-        await supabase
-          .from("sources")
-          .update({
-            status: statusForVerdict[verdict.verdict],
-            ai_verdict: verdict.verdict,
-            ai_confidence: verdict.confidence,
-            ai_reason: verdict.reason,
-            extractable_fields: verdict.extractableFields,
-            sample_preview: verdict.samplePreview,
-            evidence_urls: verdict.evidenceUrls,
-            scan_step: null,
-            last_scanned_at: new Date().toISOString()
-          })
-          .eq("id", source.id);
-      } catch (error) {
-        // Repeated agent failure: never falsely reject — leave pending so a future scan retries.
-        await supabase
-          .from("sources")
-          .update({
-            status: "pending",
-            ai_reason:
-              error instanceof Error ? error.message : "Verification agent failed after retries.",
-            scan_step: null,
-            last_scanned_at: new Date().toISOString()
-          })
-          .eq("id", source.id);
-      }
-    }
+    await processSource(source, settings, extractProvider, agent);
 
     processed += 1;
   }
