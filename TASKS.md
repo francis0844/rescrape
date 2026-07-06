@@ -11,12 +11,12 @@
 ---
 
 ## Milestone 0 — Foundation
-- [~] **T0.1** Scaffold Next.js (App Router) + TypeScript; connect GitHub repo + Vercel auto-deploy. Intent: build the Phase 0 foundation only, including typed stubs, Supabase auth/client wiring, schema migration, empty routed pages, and an impeccable design baseline without Phase 1 feature behavior.
-- [ ] **T0.2** Add Supabase project; wire client + service-role clients; add `.env.example`.
-- [ ] **T0.3** Create DB migration for all tables in CONTEXT_PLAN §4.
-- [ ] **T0.4** Supabase Auth single-login gate (app not public).
-- [ ] **T0.5** Stub `SearchProvider` (Tavily) + `VerificationAgent` (OpenAI) interfaces.
-- [ ] **T0.6** Run `impeccable teach` to establish design tokens/system. **Do not skip.**
+- [x] **T0.1** Scaffold Next.js (App Router) + TypeScript; connect GitHub repo + Vercel auto-deploy. GitHub remote is on `main`; Vercel auto-deploy steps documented in `README.md` because dashboard access is not available in this session.
+- [x] **T0.2** Add Supabase project; wire client + service-role clients; add `.env.example`.
+- [x] **T0.3** Create DB migration for all tables in CONTEXT_PLAN §4.
+- [x] **T0.4** Supabase Auth single-login gate (app not public).
+- [x] **T0.5** Stub `SearchProvider` (Tavily) + `VerificationAgent` (OpenAI) interfaces.
+- [x] **T0.6** Run `impeccable teach` to establish design tokens/system. **Do not skip.**
 
 ## Milestone 1 — Settings & lists
 - [ ] **T1.1** Settings: Search Providers whitelist CRUD (enable/disable; key via env ref).
@@ -46,3 +46,4 @@
 
 ## Session log
 - _(each session: append date, tool used (Codex/Claude Code), what changed, next task)_
+- 2026-07-07, Codex: completed Milestone 0 foundation. Added Next.js App Router + TypeScript scaffold, exact `.env.example`, Supabase browser/server/service-role clients, single SQL migration with required tables/enums/seeds, Supabase Auth gate, typed provider/agent stubs with no real API calls, empty Dashboard/Keywords/Sources/Settings routes, and `impeccable teach` PRODUCT/DESIGN baseline. Verified `npm run build`, `npm run dev`, service-role env did not appear in checked build bundles, and no subject-specific terms were introduced. Next task: T1.1 Settings search provider whitelist CRUD.
