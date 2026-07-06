@@ -19,7 +19,7 @@
 - [x] **T0.6** Run `impeccable teach` to establish design tokens/system. **Do not skip.**
 
 ## Milestone 1 — Settings & lists
-- [ ] **T1.1** Settings: Search Providers whitelist CRUD (enable/disable; key via env ref).
+- [~] **T1.1** Settings: Search Providers whitelist CRUD (enable/disable; key via env ref). Intent: implement Milestone 1 only, covering provider whitelist controls, global budget/crawl settings, keyword CRUD, and CSV import with mapping/dedup summaries through the existing Supabase schema and impeccable product UI baseline.
 - [ ] **T1.2** Settings: budget/crawl config + optional `include_domains`.
 - [ ] **T1.3** Keywords CRUD (topic/location/notes/active).
 - [ ] **T1.4** CSV import with flexible header mapping + append/dedup + summary (CONTEXT_PLAN §7).
