@@ -22,3 +22,13 @@ A budget-controlled, AI-operated tool for discovering **which public sites are w
 1. Copy `.env.example` → `.env.local` and fill in keys.
 2. Create Supabase project; run migrations.
 3. `npm install && npm run dev`.
+
+## Deployment wiring
+The GitHub remote is configured on `main` at `https://github.com/francis0844/rescrape.git`.
+This local session cannot inspect the Vercel dashboard, so confirm auto-deploy with:
+
+1. Create or open the Vercel project.
+2. Connect it to `francis0844/rescrape`.
+3. Set the production branch to `main`.
+4. Add the environment variables from `.env.example` in Vercel project settings.
+5. Confirm a push to `main` creates a production deployment.
