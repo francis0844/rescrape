@@ -30,7 +30,7 @@
 - [x] **T2.3** Run summary (queries, new sites, est. credits); graceful `partial` on credit limit.
 
 ## Milestone 3 — Phase 2 (Verification)
-- [ ] **T3.1** "Scan all sites": scan_jobs + chunked serverless loop (browser-driven) + Resume.
+- [~] **T3.1** "Scan all sites": scan_jobs + chunked serverless loop (browser-driven) + Resume. *Intent: build pure scan-chunk worker over scan_jobs+sources, start/tick/resume server actions, and browser-driven loop UI; then layer T3.2 crawler, T3.3 OpenAI judge, T3.4 Realtime progress on top before considering the milestone done.*
 - [ ] **T3.2** Bounded crawler (robots.txt, depth/page/char caps; Tavily /extract fallback).
 - [ ] **T3.3** OpenAI judge → verdict/confidence/reason/extractable_fields/sample_preview/evidence_urls.
 - [ ] **T3.4** Live progress via Supabase Realtime (current site + scan_step).
