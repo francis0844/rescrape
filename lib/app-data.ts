@@ -61,8 +61,22 @@ export type SourceRow = {
     | "needs_review"
     | "approved"
     | "rejected";
+  ai_verdict: "approve" | "reject" | "needs_review" | null;
+  ai_confidence: number | null;
+  ai_reason: string | null;
+  scan_step: string | null;
   first_discovered_at: string;
   last_scanned_at: string | null;
+};
+
+export type ScanJobRow = {
+  id: string;
+  status: "queued" | "running" | "paused" | "done" | "failed";
+  total_sites: number;
+  processed_sites: number;
+  current_source_id: string | null;
+  started_at: string | null;
+  updated_at: string;
 };
 
 export const defaultSettings: AppSettingsRow = {
@@ -197,7 +211,7 @@ export async function getSources(limit = 50): Promise<SourceRow[]> {
   const { data, error } = await supabase
     .from("sources")
     .select(
-      "id, site_url, domain, title, snippet, status, first_discovered_at, last_scanned_at"
+      "id, site_url, domain, title, snippet, status, ai_verdict, ai_confidence, ai_reason, scan_step, first_discovered_at, last_scanned_at"
     )
     .order("first_discovered_at", { ascending: false })
     .limit(limit);
@@ -207,6 +221,45 @@ export async function getSources(limit = 50): Promise<SourceRow[]> {
   }
 
   return (data ?? []) as SourceRow[];
+}
+
+export async function getPendingSourceCount(): Promise<number> {
+  if (!hasSupabaseServiceEnv()) {
+    return 0;
+  }
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { count, error } = await supabase
+    .from("sources")
+    .select("id", { count: "exact", head: true })
+    .in("status", ["pending", "scanning"]);
+
+  if (error) {
+    throw error;
+  }
+
+  return count ?? 0;
+}
+
+export async function getActiveScanJob(): Promise<ScanJobRow | null> {
+  if (!hasSupabaseServiceEnv()) {
+    return null;
+  }
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from("scan_jobs")
+    .select("id, status, total_sites, processed_sites, current_source_id, started_at, updated_at")
+    .in("status", ["queued", "running", "paused"])
+    .order("started_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as ScanJobRow) ?? null;
 }
 
 export function normalizeKeywordKey(topic: string, location: string | null | undefined) {

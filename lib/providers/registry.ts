@@ -1,7 +1,9 @@
 import "server-only";
 
+import { OpenAIVerificationAgent } from "@/lib/providers/openai-verification-agent";
 import type { SearchProvider } from "@/lib/providers/search-provider";
 import { TavilySearchProvider } from "@/lib/providers/tavily-search-provider";
+import type { VerificationAgent } from "@/lib/providers/verification-agent";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
 import { hasSupabaseServiceEnv } from "@/lib/supabase/service-env";
 
@@ -39,4 +41,8 @@ export async function getEnabledSearchProviders(): Promise<SearchProvider[]> {
 
     throw new Error(`Enabled search provider is not registered: ${provider.name}`);
   });
+}
+
+export function getVerificationAgent(): VerificationAgent {
+  return new OpenAIVerificationAgent();
 }

@@ -15,9 +15,19 @@ export type SearchResponse = {
   creditsSpent: number;
 };
 
+export type ExtractRequest = {
+  url: string;
+};
+
+export type ExtractResponse = {
+  text: string;
+  success: boolean;
+};
+
 export interface SearchProvider {
   readonly id: string;
   readonly name: string;
   readonly defaultResultCap: number;
   search(request: SearchRequest): Promise<SearchResponse>;
+  extract(request: ExtractRequest): Promise<ExtractResponse>;
 }

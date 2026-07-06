@@ -1,10 +1,13 @@
 import { Play, Search } from "lucide-react";
 
 import { runSearch } from "@/app/actions/discovery";
+import { ScanPanel } from "@/components/scan-panel";
 import { StatusMessage } from "@/components/status-message";
 import {
+  getActiveScanJob,
   getAppSettings,
   getKeywords,
+  getPendingSourceCount,
   getRecentSearchRuns,
   getSearchProviders,
   getSources,
@@ -36,15 +39,25 @@ function findSummaryRun(runs: SearchRunRow[], runId?: string) {
 }
 
 export default async function SourcesPage({ searchParams }: SourcesPageProps) {
-  const [{ message, runId }, settings, keywords, providers, runs, sources] =
-    await Promise.all([
-      searchParams,
-      getAppSettings(),
-      getKeywords(),
-      getSearchProviders(),
-      getRecentSearchRuns(),
-      getSources()
-    ]);
+  const [
+    { message, runId },
+    settings,
+    keywords,
+    providers,
+    runs,
+    sources,
+    pendingCount,
+    activeJob
+  ] = await Promise.all([
+    searchParams,
+    getAppSettings(),
+    getKeywords(),
+    getSearchProviders(),
+    getRecentSearchRuns(),
+    getSources(),
+    getPendingSourceCount(),
+    getActiveScanJob()
+  ]);
   const activeKeywords = keywords.filter((keyword) => keyword.active);
   const enabledProviders = providers.filter((provider) => provider.enabled);
   const plannedQueryCount = activeKeywords.length * enabledProviders.length;
@@ -159,6 +172,21 @@ export default async function SourcesPage({ searchParams }: SourcesPageProps) {
         </section>
       ) : null}
 
+      <ScanPanel
+        pendingCount={pendingCount}
+        initialJob={
+          activeJob
+            ? {
+                id: activeJob.id,
+                status: activeJob.status,
+                totalSites: activeJob.total_sites,
+                processedSites: activeJob.processed_sites,
+                currentSourceId: activeJob.current_source_id
+              }
+            : null
+        }
+      />
+
       <section className="panel stack-lg" aria-labelledby="source-list-title">
         <div className="section-heading">
           <div>
@@ -179,6 +207,7 @@ export default async function SourcesPage({ searchParams }: SourcesPageProps) {
                   <th>Site root</th>
                   <th>Domain</th>
                   <th>Status</th>
+                  <th>AI reason</th>
                   <th>Title</th>
                   <th>First discovered</th>
                 </tr>
@@ -194,9 +223,12 @@ export default async function SourcesPage({ searchParams }: SourcesPageProps) {
                     <td>{source.domain}</td>
                     <td>
                       <span className="status-pill" data-status={source.status}>
-                        {source.status}
+                        {source.status === "scanning" && source.scan_step
+                          ? source.scan_step
+                          : source.status}
                       </span>
                     </td>
+                    <td>{source.ai_reason ?? "—"}</td>
                     <td>{source.title}</td>
                     <td>{formatDate(source.first_discovered_at)}</td>
                   </tr>

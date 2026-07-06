@@ -1,5 +1,7 @@
 import { NotImplementedError } from "@/lib/errors";
 import type {
+  ExtractRequest,
+  ExtractResponse,
   SearchProvider,
   SearchRequest,
   SearchResponse
@@ -101,6 +103,51 @@ export class TavilySearchProvider implements SearchProvider {
           snippet: result.content?.trim() || ""
         })),
       creditsSpent: payload.usage?.credits ?? 1
+    };
+  }
+
+  async extract(request: ExtractRequest): Promise<ExtractResponse> {
+    const apiKey = process.env[this.apiKeyEnv];
+
+    if (!apiKey) {
+      throw new NotImplementedError(
+        `${this.apiKeyEnv} is required before Tavily extract can run.`
+      );
+    }
+
+    const response = await fetch("https://api.tavily.com/extract", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        urls: [request.url],
+        include_images: false
+      })
+    });
+
+    if (!response.ok) {
+      let message = `Tavily extract failed with status ${response.status}.`;
+
+      try {
+        const payload = (await response.json()) as { detail?: string; error?: string };
+        message = payload.detail ?? payload.error ?? message;
+      } catch {
+        // Preserve the status-based message when the response is not JSON.
+      }
+
+      throw new TavilySearchError(response.status, message);
+    }
+
+    const payload = (await response.json()) as {
+      results?: { url?: string; raw_content?: string }[];
+    };
+    const text = payload.results?.[0]?.raw_content?.trim() ?? "";
+
+    return {
+      text,
+      success: text.length > 0
     };
   }
 }
