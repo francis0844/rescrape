@@ -1,6 +1,8 @@
 import { LockKeyhole } from "lucide-react";
+import Link from "next/link";
 
 import { signIn, signInWithGoogle } from "@/app/actions/auth";
+import { StatusMessage } from "@/components/status-message";
 
 function GoogleIcon() {
   return (
@@ -28,6 +30,7 @@ function GoogleIcon() {
 type SignInPageProps = {
   searchParams: Promise<{
     error?: string;
+    message?: string;
     next?: string;
   }>;
 };
@@ -48,6 +51,8 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             Access is limited to trusted operators.
           </p>
         </div>
+
+        <StatusMessage message={params.message} />
 
         <form className="oauth-form" action={signInWithGoogle}>
           <input type="hidden" name="next" value={next} />
@@ -78,6 +83,10 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             Sign in
           </button>
         </form>
+
+        <p className="auth-footer-link">
+          No account yet? <Link href={`/auth/sign-up?next=${encodeURIComponent(next)}`}>Create one</Link>.
+        </p>
       </section>
     </main>
   );

@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { getSupabasePublicEnv, hasSupabasePublicEnv } from "@/lib/supabase/env";
 
-const publicPaths = ["/auth/sign-in", "/auth/callback"];
+const publicPaths = ["/auth/sign-in", "/auth/sign-up", "/auth/callback"];
 
 type CookieToSet = {
   name: string;

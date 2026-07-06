@@ -24,9 +24,9 @@ A budget-controlled, AI-operated tool for discovering **which public sites are w
 3. `npm install && npm run dev`.
 
 ## Auth
-There is no self-serve sign-up — this is a single shared login gate for trusted operators only. Two ways in:
+This is a login gate, not a public app, but account creation is self-serve — anyone with the sign-in URL can create their own account. Two ways in:
 
-1. **Email + password**: create the user manually in the Supabase dashboard (Authentication → Users → Add user), or via `supabase.auth.admin.createUser` from the CLI/service role. There is no in-app sign-up form by design.
+1. **Email + password**: `/auth/sign-up` calls `supabase.auth.signUp` directly (see `signUp` in `app/actions/auth.ts`). By default, Supabase requires the user to click a confirmation link in their email before their first sign-in works. If you want zero-friction sign-up (no email step), turn that off in the Supabase dashboard: Authentication → Providers → Email → disable **Confirm email**. That toggle lives in the dashboard, not in this repo.
 2. **Google OAuth**: enable it once per Supabase project:
    1. Supabase dashboard → Authentication → Providers → Google → toggle **Enabled**.
    2. Create an OAuth Client ID (Web application) in Google Cloud Console; add the Supabase callback URL shown on that provider settings page as an **Authorized redirect URI**.
