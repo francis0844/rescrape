@@ -40,7 +40,7 @@
 - [x] **T4.2** Approve/Reject/Re-scan/note + bulk actions (human-only terminal states).
 - [x] **T4.3** Approved (trusted) sources saved filter/tab on Sources.
 - [x] **T4.4** Dashboard (counts + recent runs).
-- [ ] **T4.5** End-to-end POC pass against CONTEXT_PLAN §5 done-criteria; `impeccable` polish.
+- [~] **T4.5** End-to-end POC pass against CONTEXT_PLAN §5 done-criteria; `impeccable` polish. *Intent: walk each §5 flow item (login → settings → keywords/CSV → run search → scan all sites → review → approved tab), confirm wiring end to end, then run an impeccable polish/extract sweep across Dashboard/Keywords/Sources/Settings for consistency.*
 
 ---
 
