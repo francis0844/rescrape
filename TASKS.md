@@ -15,6 +15,7 @@
 - [x] **T0.2** Add Supabase project; wire client + service-role clients; add `.env.example`.
 - [x] **T0.3** Create DB migration for all tables in CONTEXT_PLAN §4.
 - [x] **T0.4** Supabase Auth single-login gate (app not public).
+- [~] **T0.7** Add Google OAuth sign-in (no self-serve sign-up exists, so operators need a second way in besides a manually-provisioned password). *Intent: add `signInWithGoogle` server action + a "Continue with Google" button on the sign-in screen, reusing the existing `/auth/callback` code-exchange route. Requires the Google provider to be enabled in the Supabase Auth dashboard (external config, not code) — documented in README.*
 - [x] **T0.5** Stub `SearchProvider` (Tavily) + `VerificationAgent` (OpenAI) interfaces.
 - [x] **T0.6** Run `impeccable teach` to establish design tokens/system. **Do not skip.**
 
