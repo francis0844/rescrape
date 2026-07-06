@@ -19,10 +19,10 @@
 - [x] **T0.6** Run `impeccable teach` to establish design tokens/system. **Do not skip.**
 
 ## Milestone 1 — Settings & lists
-- [~] **T1.1** Settings: Search Providers whitelist CRUD (enable/disable; key via env ref). Intent: implement Milestone 1 only, covering provider whitelist controls, global budget/crawl settings, keyword CRUD, and CSV import with mapping/dedup summaries through the existing Supabase schema and impeccable product UI baseline.
-- [ ] **T1.2** Settings: budget/crawl config + optional `include_domains`.
-- [ ] **T1.3** Keywords CRUD (topic/location/notes/active).
-- [ ] **T1.4** CSV import with flexible header mapping + append/dedup + summary (CONTEXT_PLAN §7).
+- [x] **T1.1** Settings: Search Providers whitelist CRUD (enable/disable; key via env ref).
+- [x] **T1.2** Settings: budget/crawl config + optional `include_domains`.
+- [x] **T1.3** Keywords CRUD (topic/location/notes/active).
+- [x] **T1.4** CSV import with flexible header mapping + append/dedup + summary (CONTEXT_PLAN §7).
 
 ## Milestone 2 — Phase 1 (Discovery)
 - [ ] **T2.1** Run-search: build queries from active keywords, enforce enabled-providers boundary.
@@ -47,3 +47,4 @@
 ## Session log
 - _(each session: append date, tool used (Codex/Claude Code), what changed, next task)_
 - 2026-07-07, Codex: completed Milestone 0 foundation. Added Next.js App Router + TypeScript scaffold, exact `.env.example`, Supabase browser/server/service-role clients, single SQL migration with required tables/enums/seeds, Supabase Auth gate, typed provider/agent stubs with no real API calls, empty Dashboard/Keywords/Sources/Settings routes, and `impeccable teach` PRODUCT/DESIGN baseline. Verified `npm run build`, `npm run dev`, service-role env did not appear in checked build bundles, and no subject-specific terms were introduced. Next task: T1.1 Settings search provider whitelist CRUD.
+- 2026-07-07, Codex: completed Milestone 1 Settings & lists. Added Settings provider whitelist controls for the seeded provider row, global budget/crawl settings including include_domains, keyword create/edit/delete/toggle forms, and CSV import with header detection, manual mapping, template download, append-by-default dedup, explicit replace confirmation, row validation, row cap, and import summary. Verified `npm run build`, unauthenticated Settings/Keywords redirects, no service-role marker in client static assets, and no direct Tavily/OpenAI calls. Next task: T2.1 run-search builder with enabled-provider enforcement.
