@@ -46,6 +46,9 @@
 
 **Phase 1 "Source Searching" POC is complete** (Milestones 0-4). All CONTEXT_PLAN §5 done-criteria are wired end to end. Part 2 (Parsing) and Part 3 (Exporting) are out of scope and not started.
 
+## Milestone 5 — UX standard: loading states, backend-status feedback, motion
+- [~] **T5.1** Make every mutating action in the app (Keywords CRUD, Settings forms, run search, scan-all-sites, review actions incl. bulk, auth forms) show an explicit in-flight loading state and a clear post-action result, plus simple, purposeful motion app-wide. *Intent: build one reusable `SubmitButton` (useFormStatus-based) client component and use it in every `<form action={serverAction}>` across the app instead of raw submit buttons; add route-level `loading.tsx` skeletons for Dashboard/Keywords/Sources/Settings; give ReviewQueue's bulk actions explicit pending copy; add small CSS motion (panel fade-in-up, skeleton shimmer, button hover lift) respecting prefers-reduced-motion. Design pass via the `frontend-design` skill per explicit user request, staying consistent with the existing DESIGN.md tokens rather than introducing a second visual language.*
+
 ---
 
 ## Session log
