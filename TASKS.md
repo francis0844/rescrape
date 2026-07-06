@@ -16,6 +16,7 @@
 - [x] **T0.3** Create DB migration for all tables in CONTEXT_PLAN §4.
 - [x] **T0.4** Supabase Auth single-login gate (app not public).
 - [x] **T0.7** Add Google OAuth sign-in (no self-serve sign-up exists, so operators need a second way in besides a manually-provisioned password).
+- [~] **T0.8** Add self-serve email/password sign-up (product owner explicitly overrode the original "no sign-up, admin-provisioned only" gate — real account creation needs to be automatic from a button in the UI, not manual dashboard/SQL work). *Intent: add a `/auth/sign-up` page + `signUp` server action using `supabase.auth.signUp`, linked from the sign-in screen. Note in the confirmation message that Supabase's default "Confirm email" setting may still require an email click before first login, since that toggle lives in the Supabase dashboard and isn't code.*
 - [x] **T0.5** Stub `SearchProvider` (Tavily) + `VerificationAgent` (OpenAI) interfaces.
 - [x] **T0.6** Run `impeccable teach` to establish design tokens/system. **Do not skip.**
 
