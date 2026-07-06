@@ -311,8 +311,10 @@ textarea:focus-visible {
 }
 
 .button:disabled {
+  border-color: var(--border);
+  background: var(--surface-strong);
+  color: var(--text-muted);
   cursor: not-allowed;
-  opacity: 0.55;
 }
 
 .button-secondary {
@@ -483,6 +485,89 @@ textarea:focus-visible {
 .empty-state p {
   margin: 0;
   color: var(--text-muted);
+}
+
+.metric-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.metric-tile {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  padding: 0.875rem;
+}
+
+.metric-tile strong {
+  color: var(--text);
+  font-size: 1.35rem;
+  line-height: 1.1;
+}
+
+.metric-label {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.scope-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pill,
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 1.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--text-muted);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.status-pill[data-status="done"],
+.status-pill[data-status="approved"] {
+  border-color: oklch(0.78 0.07 150);
+  background: oklch(0.94 0.035 150);
+  color: var(--success);
+}
+
+.status-pill[data-status="partial"],
+.status-pill[data-status="needs_review"] {
+  border-color: oklch(0.82 0.08 75);
+  background: oklch(0.95 0.035 75);
+  color: oklch(0.43 0.1 75);
+}
+
+.status-pill[data-status="failed"],
+.status-pill[data-status="rejected"],
+.status-pill[data-status="ai_rejected"] {
+  border-color: oklch(0.84 0.04 28);
+  background: oklch(0.94 0.025 28);
+  color: var(--danger);
+}
+
+.status-pill[data-status="pending"] {
+  border-color: var(--border);
+  background: var(--surface-strong);
+  color: var(--text-muted);
+}
+
+.status-pill[data-status="running"],
+.status-pill[data-status="scanning"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
 }
 
 @media (max-width: 760px) {

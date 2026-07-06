@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { getSupabasePublicEnv } from "@/lib/supabase/env";
+import { getSupabasePublicEnv, hasSupabasePublicEnv } from "@/lib/supabase/env";
 
 const publicPaths = ["/auth/sign-in", "/auth/callback"];
 
@@ -19,6 +19,10 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/favicon") ||
     publicPaths.some((path) => pathname.startsWith(path))
   ) {
+    return NextResponse.next();
+  }
+
+  if (!hasSupabasePublicEnv()) {
     return NextResponse.next();
   }
 

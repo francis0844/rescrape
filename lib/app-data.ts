@@ -35,6 +35,36 @@ export type KeywordRow = {
   updated_at: string;
 };
 
+export type SearchRunRow = {
+  id: string;
+  status: "queued" | "running" | "done" | "partial" | "failed";
+  started_at: string | null;
+  finished_at: string | null;
+  query_count: number;
+  result_count: number;
+  credits_spent_est: number;
+  keywords_snapshot: unknown;
+  providers_snapshot: unknown;
+};
+
+export type SourceRow = {
+  id: string;
+  site_url: string;
+  domain: string;
+  title: string;
+  snippet: string;
+  status:
+    | "pending"
+    | "scanning"
+    | "ai_approved"
+    | "ai_rejected"
+    | "needs_review"
+    | "approved"
+    | "rejected";
+  first_discovered_at: string;
+  last_scanned_at: string | null;
+};
+
 export const defaultSettings: AppSettingsRow = {
   id: "local-default",
   include_domains: [],
@@ -135,6 +165,48 @@ export async function getKeywords(): Promise<KeywordRow[]> {
   }
 
   return (data ?? []) as KeywordRow[];
+}
+
+export async function getRecentSearchRuns(limit = 5): Promise<SearchRunRow[]> {
+  if (!hasSupabaseServiceEnv()) {
+    return [];
+  }
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from("search_runs")
+    .select(
+      "id, status, started_at, finished_at, query_count, result_count, credits_spent_est, keywords_snapshot, providers_snapshot"
+    )
+    .order("started_at", { ascending: false, nullsFirst: false })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as SearchRunRow[];
+}
+
+export async function getSources(limit = 50): Promise<SourceRow[]> {
+  if (!hasSupabaseServiceEnv()) {
+    return [];
+  }
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from("sources")
+    .select(
+      "id, site_url, domain, title, snippet, status, first_discovered_at, last_scanned_at"
+    )
+    .order("first_discovered_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as SourceRow[];
 }
 
 export function normalizeKeywordKey(topic: string, location: string | null | undefined) {

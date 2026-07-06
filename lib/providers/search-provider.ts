@@ -10,8 +10,14 @@ export type SearchResult = {
   snippet: string;
 };
 
+export type SearchResponse = {
+  results: SearchResult[];
+  creditsSpent: number;
+};
+
 export interface SearchProvider {
   readonly id: string;
   readonly name: string;
-  search(request: SearchRequest): Promise<SearchResult[]>;
+  readonly defaultResultCap: number;
+  search(request: SearchRequest): Promise<SearchResponse>;
 }

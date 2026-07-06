@@ -3,6 +3,7 @@ import "server-only";
 import type { SearchProvider } from "@/lib/providers/search-provider";
 import { TavilySearchProvider } from "@/lib/providers/tavily-search-provider";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase/service-role";
+import { hasSupabaseServiceEnv } from "@/lib/supabase/service-env";
 
 type SearchProviderRow = {
   id: string;
@@ -12,6 +13,10 @@ type SearchProviderRow = {
 };
 
 export async function getEnabledSearchProviders(): Promise<SearchProvider[]> {
+  if (!hasSupabaseServiceEnv()) {
+    return [];
+  }
+
   const supabase = createSupabaseServiceRoleClient();
   const { data, error } = await supabase
     .from("search_providers")
