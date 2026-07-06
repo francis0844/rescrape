@@ -23,6 +23,18 @@ A budget-controlled, AI-operated tool for discovering **which public sites are w
 2. Create Supabase project; run migrations.
 3. `npm install && npm run dev`.
 
+## Auth
+There is no self-serve sign-up — this is a single shared login gate for trusted operators only. Two ways in:
+
+1. **Email + password**: create the user manually in the Supabase dashboard (Authentication → Users → Add user), or via `supabase.auth.admin.createUser` from the CLI/service role. There is no in-app sign-up form by design.
+2. **Google OAuth**: enable it once per Supabase project:
+   1. Supabase dashboard → Authentication → Providers → Google → toggle **Enabled**.
+   2. Create an OAuth Client ID (Web application) in Google Cloud Console; add the Supabase callback URL shown on that provider settings page as an **Authorized redirect URI**.
+   3. Paste the Google Client ID and Client Secret into the Supabase provider settings and save.
+   4. In Supabase Authentication → URL Configuration, add this app's `/auth/callback` URL (e.g. `https://<your-vercel-domain>/auth/callback` and `http://localhost:3000/auth/callback` for local dev) to the allowed redirect URLs.
+
+No app code changes are needed to add more OAuth providers later — `signInWithGoogle` in `app/actions/auth.ts` is a thin wrapper around `supabase.auth.signInWithOAuth`; the same pattern extends to other providers once they're enabled in the dashboard.
+
 ## Deployment wiring
 The GitHub remote is configured on `main` at `https://github.com/francis0844/rescrape.git`.
 This local session cannot inspect the Vercel dashboard, so confirm auto-deploy with:
