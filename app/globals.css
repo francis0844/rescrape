@@ -888,6 +888,30 @@ textarea:focus-visible {
   min-height: 2.5rem;
 }
 
+.keyword-picker {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.keyword-picker-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.keyword-picker-list {
+  display: grid;
+  gap: 0.25rem;
+  max-height: 12rem;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--background);
+  padding: 0.5rem 0.75rem;
+}
+
 /* Motion: one staggered entrance per page load, not scattered micro-interactions. */
 .page-frame > .page-header,
 .page-frame > .panel,
@@ -1004,7 +1028,7 @@ textarea:focus-visible {
   }
 
   .nav-list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(3.25rem, 1fr));
   }
 
   .nav-link {

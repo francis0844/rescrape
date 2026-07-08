@@ -1,10 +1,12 @@
 "use client";
 
 import {
+  ClipboardCheck,
   Gauge,
   KeyRound,
   ListChecks,
   LogOut,
+  Search,
   Settings,
   ShieldCheck
 } from "lucide-react";
@@ -17,7 +19,9 @@ import { SubmitButton } from "@/components/submit-button";
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: Gauge },
   { href: "/keywords", label: "Keywords", icon: ListChecks },
-  { href: "/sources", label: "Sources", icon: ShieldCheck },
+  { href: "/sources/search", label: "Search", icon: Search },
+  { href: "/sources/scan", label: "Scan", icon: ShieldCheck },
+  { href: "/sources/review", label: "Review", icon: ClipboardCheck },
   { href: "/settings", label: "Settings", icon: Settings }
 ];
 

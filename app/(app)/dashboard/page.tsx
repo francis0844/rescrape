@@ -49,7 +49,7 @@ export default async function DashboardPage() {
             </h2>
             <p className="panel-copy">{total} site roots tracked in total.</p>
           </div>
-          <Link className="button button-secondary fit-content" href="/sources?view=review">
+          <Link className="button button-secondary fit-content" href="/sources/review">
             Go to review
           </Link>
         </div>
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
             </h2>
             <p className="panel-copy">Latest discovery activity, most recent first.</p>
           </div>
-          <Link className="button button-secondary fit-content" href="/sources">
+          <Link className="button button-secondary fit-content" href="/sources/search">
             Run search
           </Link>
         </div>
@@ -109,7 +109,7 @@ export default async function DashboardPage() {
         ) : (
           <div className="empty-state">
             <h3>No search runs yet</h3>
-            <p>Add keywords, enable a provider, then run search from the Sources page.</p>
+            <p>Add keywords, enable a provider, then run search from the Search page.</p>
           </div>
         )}
       </section>

@@ -5,9 +5,12 @@ import { redirect } from "next/navigation";
 
 import { runDiscoverySearch } from "@/lib/discovery/run-search";
 
-export async function runSearch() {
-  const result = await runDiscoverySearch();
-  revalidatePath("/sources");
+export async function runSearch(formData: FormData) {
+  const keywordIds = formData.getAll("keywordIds").map(String);
+  const result = await runDiscoverySearch({ keywordIds });
+  revalidatePath("/sources/search");
+  revalidatePath("/sources/scan");
+  revalidatePath("/dashboard");
 
   const params = new URLSearchParams({
     message: result.message
@@ -17,5 +20,5 @@ export async function runSearch() {
     params.set("runId", result.runId);
   }
 
-  redirect(`/sources?${params.toString()}`);
+  redirect(`/sources/search?${params.toString()}`);
 }

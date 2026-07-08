@@ -47,13 +47,19 @@ function isCreditLimitError(error: unknown) {
   );
 }
 
-async function getActiveKeywords() {
+async function getActiveKeywords(keywordIds?: string[]) {
   const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("keywords")
     .select("id, topic, location, notes, active, created_at, updated_at")
     .eq("active", true)
     .order("created_at", { ascending: true });
+
+  if (keywordIds) {
+    query = query.in("id", keywordIds);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -145,7 +151,14 @@ async function recordDiscovery(input: {
   }
 }
 
-export async function runDiscoverySearch(): Promise<RunSearchResult> {
+export type RunSearchOptions = {
+  /** When provided, scopes the run to only these (still-active) keyword ids. */
+  keywordIds?: string[];
+};
+
+export async function runDiscoverySearch(
+  options: RunSearchOptions = {}
+): Promise<RunSearchResult> {
   if (!hasSupabaseServiceEnv()) {
     return {
       runId: null,
@@ -160,7 +173,7 @@ export async function runDiscoverySearch(): Promise<RunSearchResult> {
 
   const [settings, keywords, providers] = await Promise.all([
     getAppSettings(),
-    getActiveKeywords(),
+    getActiveKeywords(options.keywordIds),
     getEnabledSearchProviders()
   ]);
 
@@ -172,7 +185,9 @@ export async function runDiscoverySearch(): Promise<RunSearchResult> {
       plannedQueryCount: 0,
       resultCount: 0,
       creditsSpentEst: 0,
-      message: "Create at least one active keyword before running search."
+      message: options.keywordIds
+        ? "Select at least one active keyword before running search."
+        : "Create at least one active keyword before running search."
     };
   }
 

@@ -6,13 +6,15 @@ import { ensureScanJob, getScanJob, runScanChunk } from "@/lib/verification/scan
 
 export async function startScan() {
   const job = await ensureScanJob();
-  revalidatePath("/sources");
+  revalidatePath("/sources/scan");
   return job;
 }
 
 export async function tickScan(jobId: string) {
   const result = await runScanChunk(jobId);
-  revalidatePath("/sources");
+  revalidatePath("/sources/scan");
+  revalidatePath("/sources/review");
+  revalidatePath("/dashboard");
   return result;
 }
 

@@ -9,7 +9,9 @@ import { rescanSource as rescanSourceWorker } from "@/lib/verification/scan-work
 
 function requireDatabase() {
   if (!hasSupabaseServiceEnv()) {
-    redirect("/sources?message=Supabase environment variables are required to review sources.");
+    redirect(
+      "/sources/review?message=Supabase environment variables are required to review sources."
+    );
   }
 }
 
@@ -20,18 +22,19 @@ export async function approveSource(formData: FormData) {
   const id = String(formData.get("id") ?? "");
 
   if (!id) {
-    redirect("/sources?message=Source id is required.");
+    redirect("/sources/review?message=Source id is required.");
   }
 
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase.from("sources").update({ status: "approved" }).eq("id", id);
 
   if (error) {
-    redirect(`/sources?message=${encodeURIComponent(error.message)}`);
+    redirect(`/sources/review?message=${encodeURIComponent(error.message)}`);
   }
 
-  revalidatePath("/sources");
-  redirect("/sources?view=review&message=Source approved.");
+  revalidatePath("/sources/review");
+  revalidatePath("/dashboard");
+  redirect("/sources/review?view=review&message=Source approved.");
 }
 
 export async function rejectSource(formData: FormData) {
@@ -40,18 +43,19 @@ export async function rejectSource(formData: FormData) {
   const id = String(formData.get("id") ?? "");
 
   if (!id) {
-    redirect("/sources?message=Source id is required.");
+    redirect("/sources/review?message=Source id is required.");
   }
 
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase.from("sources").update({ status: "rejected" }).eq("id", id);
 
   if (error) {
-    redirect(`/sources?message=${encodeURIComponent(error.message)}`);
+    redirect(`/sources/review?message=${encodeURIComponent(error.message)}`);
   }
 
-  revalidatePath("/sources");
-  redirect("/sources?view=review&message=Source rejected.");
+  revalidatePath("/sources/review");
+  revalidatePath("/dashboard");
+  redirect("/sources/review?view=review&message=Source rejected.");
 }
 
 export async function saveSourceNote(formData: FormData) {
@@ -61,7 +65,7 @@ export async function saveSourceNote(formData: FormData) {
   const note = String(formData.get("human_note") ?? "").trim();
 
   if (!id) {
-    redirect("/sources?message=Source id is required.");
+    redirect("/sources/review?message=Source id is required.");
   }
 
   const supabase = createSupabaseServiceRoleClient();
@@ -71,11 +75,12 @@ export async function saveSourceNote(formData: FormData) {
     .eq("id", id);
 
   if (error) {
-    redirect(`/sources?message=${encodeURIComponent(error.message)}`);
+    redirect(`/sources/review?message=${encodeURIComponent(error.message)}`);
   }
 
-  revalidatePath("/sources");
-  redirect("/sources?view=review&message=Note saved.");
+  revalidatePath("/sources/review");
+  revalidatePath("/dashboard");
+  redirect("/sources/review?view=review&message=Note saved.");
 }
 
 export async function rescanSourceAction(formData: FormData) {
@@ -84,13 +89,14 @@ export async function rescanSourceAction(formData: FormData) {
   const id = String(formData.get("id") ?? "");
 
   if (!id) {
-    redirect("/sources?message=Source id is required.");
+    redirect("/sources/review?message=Source id is required.");
   }
 
   await rescanSourceWorker(id);
 
-  revalidatePath("/sources");
-  redirect("/sources?view=review&message=Source re-scanned.");
+  revalidatePath("/sources/review");
+  revalidatePath("/dashboard");
+  redirect("/sources/review?view=review&message=Source re-scanned.");
 }
 
 export type BulkActionResult = {
@@ -113,7 +119,8 @@ export async function bulkUpdateStatus(
     throw error;
   }
 
-  revalidatePath("/sources");
+  revalidatePath("/sources/review");
+  revalidatePath("/dashboard");
 
   return { updated: ids.length };
 }
