@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchScanJob, startScan, tickScan } from "@/app/actions/verification";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
-type ScanJobState = {
+export type ScanJobState = {
   id: string;
   status: "queued" | "running" | "paused" | "done" | "failed";
   totalSites: number;
@@ -22,6 +22,11 @@ type CurrentSite = {
 type ScanPanelProps = {
   pendingCount: number;
   initialJob: ScanJobState | null;
+  /** When set, "Scan" only scans these keywords' sources instead of every eligible source. */
+  keywordIds?: string[];
+  title?: string;
+  description?: string;
+  startLabel?: string;
 };
 
 function toJobState(row: {
@@ -40,7 +45,14 @@ function toJobState(row: {
   };
 }
 
-export function ScanPanel({ pendingCount, initialJob }: ScanPanelProps) {
+export function ScanPanel({
+  pendingCount,
+  initialJob,
+  keywordIds,
+  title = "Scan all sites",
+  startLabel = "Scan all sites",
+  description = "Crawls each pending site and asks the verification agent for a judgment. Stays open on this tab — closing it pauses the batch; Resume picks up where it left off."
+}: ScanPanelProps) {
   const [job, setJob] = useState<ScanJobState | null>(initialJob);
   const [currentSite, setCurrentSite] = useState<CurrentSite | null>(null);
   const [running, setRunning] = useState(false);
@@ -118,7 +130,7 @@ export function ScanPanel({ pendingCount, initialJob }: ScanPanelProps) {
     setError(null);
 
     try {
-      const created = await startScan();
+      const created = await startScan(keywordIds);
       setJob(toJobState(created));
       await runLoop(created.id);
     } catch (caught) {
@@ -159,12 +171,9 @@ export function ScanPanel({ pendingCount, initialJob }: ScanPanelProps) {
       <div className="section-heading">
         <div>
           <h2 className="panel-title" id="scan-panel-title">
-            Scan all sites
+            {title}
           </h2>
-          <p className="panel-copy">
-            Crawls each pending site and asks the verification agent for a judgment. Stays
-            open on this tab — closing it pauses the batch; Resume picks up where it left off.
-          </p>
+          <p className="panel-copy">{description}</p>
         </div>
       </div>
 
@@ -222,7 +231,7 @@ export function ScanPanel({ pendingCount, initialJob }: ScanPanelProps) {
             disabled={pendingCount === 0}
           >
             <PlayCircle size={16} aria-hidden="true" />
-            Scan all sites
+            {startLabel}
           </button>
         ) : null}
 

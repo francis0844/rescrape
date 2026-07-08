@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Play, Search } from "lucide-react";
 
 import { runSearch } from "@/app/actions/discovery";
@@ -6,10 +7,10 @@ import { StatusMessage } from "@/components/status-message";
 import { SubmitButton } from "@/components/submit-button";
 import {
   getAppSettings,
+  getKeywordSearchSummaries,
   getKeywords,
   getRecentSearchRuns,
   getSearchProviders,
-  getSources,
   type SearchRunRow
 } from "@/lib/app-data";
 
@@ -40,12 +41,12 @@ function findSummaryRun(runs: SearchRunRow[], runId?: string) {
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
 
-  const [settings, keywords, providers, runs, sources] = await Promise.all([
+  const [settings, keywords, providers, runs, keywordSummaries] = await Promise.all([
     getAppSettings(),
     getKeywords(),
     getSearchProviders(),
     getRecentSearchRuns(50),
-    getSources()
+    getKeywordSearchSummaries()
   ]);
 
   const activeKeywords = keywords.filter((keyword) => keyword.active);
@@ -173,46 +174,46 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         <div className="section-heading">
           <div>
             <h2 className="panel-title" id="source-list-title">
-              Candidate sources
+              Searched keywords
             </h2>
             <p className="panel-copy">
-              {sources.length} site roots stored across every status. Scan them next.
+              {keywordSummaries.length} keyword{keywordSummaries.length === 1 ? "" : "s"} have
+              discovered sites so far. Open one to see its site roots.
             </p>
           </div>
         </div>
 
-        {sources.length ? (
+        {keywordSummaries.length ? (
           <div className="preview-table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
-                  <th>Site root</th>
-                  <th>Domain</th>
-                  <th>Status</th>
-                  <th>AI reason</th>
-                  <th>Title</th>
-                  <th>First discovered</th>
+                  <th>Keyword</th>
+                  <th>Sites found</th>
+                  <th>Scan status</th>
+                  <th>Last searched</th>
+                  <th />
                 </tr>
               </thead>
               <tbody>
-                {sources.map((source) => (
-                  <tr key={source.id}>
+                {keywordSummaries.map((summary) => (
+                  <tr key={summary.keywordId}>
+                    <td>{[summary.topic, summary.location].filter(Boolean).join(" · ")}</td>
+                    <td>{summary.totalSources}</td>
                     <td>
-                      <a href={source.site_url} target="_blank" rel="noreferrer">
-                        {source.site_url}
-                      </a>
-                    </td>
-                    <td>{source.domain}</td>
-                    <td>
-                      <span className="status-pill" data-status={source.status}>
-                        {source.status === "scanning" && source.scan_step
-                          ? source.scan_step
-                          : source.status}
+                      <span className="status-pill" data-status={summary.scanState}>
+                        {summary.scanState.replace("_", " ")}
                       </span>
                     </td>
-                    <td>{source.ai_reason ?? "—"}</td>
-                    <td>{source.title}</td>
-                    <td>{formatDate(source.first_discovered_at)}</td>
+                    <td>{formatDate(summary.lastDiscoveredAt)}</td>
+                    <td>
+                      <Link
+                        className="button button-secondary"
+                        href={`/sources/search/${summary.keywordId}`}
+                      >
+                        View sites
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -220,7 +221,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           </div>
         ) : (
           <div className="empty-state">
-            <h3>No candidate sources yet</h3>
+            <h3>No searched keywords yet</h3>
             <p>Run search after adding active keywords and enabling a provider.</p>
           </div>
         )}

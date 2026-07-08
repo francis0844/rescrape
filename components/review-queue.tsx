@@ -7,10 +7,13 @@ import { useMemo, useState, useTransition } from "react";
 import { approveSource, bulkUpdateStatus, rejectSource, rescanSourceAction, saveSourceNote } from "@/app/actions/review";
 import { SubmitButton } from "@/components/submit-button";
 import type { SourceDiscoveryInfo, SourceRow } from "@/lib/app-data";
+import { statusLabel } from "@/lib/status-label";
 
 type ReviewQueueProps = {
   sources: SourceRow[];
   discoveryInfo: Record<string, SourceDiscoveryInfo>;
+  /** Where the per-card forms (approve/reject/rescan/note) redirect back to after submitting. */
+  returnTo?: string;
 };
 
 function formatDate(value: string | null) {
@@ -25,11 +28,11 @@ function formatDate(value: string | null) {
 
 function verdictNote(source: SourceRow) {
   if (source.status === "approved") {
-    return "Human approved.";
+    return "User Approved.";
   }
 
   if (source.status === "rejected") {
-    return "Human rejected.";
+    return "User Rejected.";
   }
 
   if (source.status === "ai_approved") {
@@ -59,7 +62,11 @@ function formatSamplePreview(preview: unknown) {
   }
 }
 
-export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
+export function ReviewQueue({
+  sources,
+  discoveryInfo,
+  returnTo = "/sources/review"
+}: ReviewQueueProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [isPending, startTransition] = useTransition();
@@ -192,7 +199,7 @@ export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
                 </div>
                 <div className="review-card-status">
                   <span className="status-pill" data-status={source.status}>
-                    {source.status}
+                    {statusLabel(source.status)}
                   </span>
                   {typeof source.ai_confidence === "number" ? (
                     <div className="confidence-row">
@@ -248,6 +255,7 @@ export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
 
               <form action={saveSourceNote} className="note-form">
                 <input type="hidden" name="id" value={source.id} />
+                <input type="hidden" name="returnTo" value={returnTo} />
                 <textarea
                   className="input textarea"
                   name="human_note"
@@ -262,6 +270,7 @@ export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
               <div className="review-card-actions">
                 <form action={rescanSourceAction}>
                   <input type="hidden" name="id" value={source.id} />
+                  <input type="hidden" name="returnTo" value={returnTo} />
                   <SubmitButton className="button button-secondary" pendingLabel="Re-scanning...">
                     <RotateCcw size={16} aria-hidden="true" />
                     Re-scan
@@ -270,16 +279,18 @@ export function ReviewQueue({ sources, discoveryInfo }: ReviewQueueProps) {
                 <div className="row-actions">
                   <form action={rejectSource}>
                     <input type="hidden" name="id" value={source.id} />
+                    <input type="hidden" name="returnTo" value={returnTo} />
                     <SubmitButton className="button button-danger" pendingLabel="Rejecting...">
                       <X size={16} aria-hidden="true" />
-                      Reject
+                      Reject (User Rejected)
                     </SubmitButton>
                   </form>
                   <form action={approveSource}>
                     <input type="hidden" name="id" value={source.id} />
+                    <input type="hidden" name="returnTo" value={returnTo} />
                     <SubmitButton className="button" pendingLabel="Approving...">
                       <Check size={16} aria-hidden="true" />
-                      Approve
+                      Approve (User Approved)
                     </SubmitButton>
                   </form>
                 </div>

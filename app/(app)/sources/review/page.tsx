@@ -1,26 +1,15 @@
 import Link from "next/link";
+import { Download } from "lucide-react";
 
-import { ReviewQueue } from "@/components/review-queue";
 import { StatusMessage } from "@/components/status-message";
 import {
-  getDiscoveryInfoForSources,
   getFilteredSources,
-  getKeywords,
-  getRecentSearchRuns,
+  getKeywordSearchSummaries,
   getSourceStatusCounts,
   type SourceRow
 } from "@/lib/app-data";
 
 export const dynamic = "force-dynamic";
-
-const REVIEW_STATUSES: SourceRow["status"][] = [
-  "ai_approved",
-  "ai_rejected",
-  "needs_review",
-  "approved",
-  "rejected"
-];
-const DEFAULT_REVIEW_STATUSES: SourceRow["status"][] = ["ai_approved", "needs_review"];
 
 type ViewName = "review" | "approved";
 
@@ -28,10 +17,6 @@ type ReviewPageProps = {
   searchParams: Promise<{
     message?: string;
     view?: string;
-    status?: string;
-    keywordId?: string;
-    filterRunId?: string;
-    minConfidence?: string;
   }>;
 };
 
@@ -50,58 +35,30 @@ function parseView(value: string | undefined): ViewName {
   return value === "approved" ? "approved" : "review";
 }
 
-function parseStatuses(value: string | undefined): SourceRow["status"][] {
-  if (!value) {
-    return DEFAULT_REVIEW_STATUSES;
-  }
-
-  const parsed = value
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter((entry): entry is SourceRow["status"] =>
-      REVIEW_STATUSES.includes(entry as SourceRow["status"])
-    );
-
-  return parsed.length ? parsed : DEFAULT_REVIEW_STATUSES;
-}
-
 export default async function ReviewPage({ searchParams }: ReviewPageProps) {
   const params = await searchParams;
   const view = parseView(params.view);
 
-  const [keywords, runs, statusCounts] = await Promise.all([
-    getKeywords(),
-    getRecentSearchRuns(50),
-    getSourceStatusCounts()
+  const [statusCounts, summaries] = await Promise.all([
+    getSourceStatusCounts(),
+    getKeywordSearchSummaries()
   ]);
 
-  const reviewStatuses = parseStatuses(params.status);
-  const minConfidence = params.minConfidence ? Number(params.minConfidence) : undefined;
+  const reviewCount = statusCounts.ai_approved + statusCounts.needs_review;
+  const reviewableSummaries = summaries.filter((summary) => summary.scanState !== "unscanned");
 
-  let reviewSources: SourceRow[] = [];
-  let discoveryInfo: Awaited<ReturnType<typeof getDiscoveryInfoForSources>> = {};
   let approvedSources: SourceRow[] = [];
 
-  if (view === "review") {
-    reviewSources = await getFilteredSources({
-      statuses: reviewStatuses,
-      keywordId: params.keywordId || undefined,
-      runId: params.filterRunId || undefined,
-      minConfidence: Number.isFinite(minConfidence) ? minConfidence : undefined
-    });
-    discoveryInfo = await getDiscoveryInfoForSources(reviewSources.map((source) => source.id));
-  } else {
+  if (view === "approved") {
     approvedSources = await getFilteredSources({ statuses: ["approved"] });
   }
-
-  const reviewCount = statusCounts.ai_approved + statusCounts.needs_review;
 
   return (
     <div className="page-frame stack-xl">
       <header className="page-header">
         <h1 className="page-title">Review</h1>
         <p className="page-kicker">
-          Step 3 of 3: a human always makes the final approve/reject call.
+          Step 3 of 3: a human always makes the final call — User Approved or User Rejected.
         </p>
       </header>
 
@@ -117,6 +74,10 @@ export default async function ReviewPage({ searchParams }: ReviewPageProps) {
               AI verdicts are suggestions — nothing here is trusted until a human approves it.
             </p>
           </div>
+          <a className="button button-secondary fit-content" href="/api/export/sources">
+            <Download size={16} aria-hidden="true" />
+            Export CSV
+          </a>
         </div>
 
         <nav className="tab-strip" aria-label="Review views">
@@ -131,63 +92,50 @@ export default async function ReviewPage({ searchParams }: ReviewPageProps) {
         </nav>
 
         {view === "review" ? (
-          <>
-            <form className="filter-form" method="get">
-              <input type="hidden" name="view" value="review" />
-              <label className="field">
-                <span className="label">Status</span>
-                <select className="input" name="status" defaultValue={reviewStatuses.join(",")}>
-                  <option value="ai_approved,needs_review">AI approved + needs review</option>
-                  <option value="ai_approved">AI approved only</option>
-                  <option value="ai_rejected">AI rejected only</option>
-                  <option value="needs_review">Needs review only</option>
-                  <option value="approved">Human approved</option>
-                  <option value="rejected">Human rejected</option>
-                  <option value={REVIEW_STATUSES.join(",")}>All reviewed states</option>
-                </select>
-              </label>
-              <label className="field">
-                <span className="label">Keyword</span>
-                <select className="input" name="keywordId" defaultValue={params.keywordId ?? ""}>
-                  <option value="">Any keyword</option>
-                  {keywords.map((keyword) => (
-                    <option value={keyword.id} key={keyword.id}>
-                      {[keyword.topic, keyword.location].filter(Boolean).join(" · ")}
-                    </option>
+          reviewableSummaries.length ? (
+            <div className="preview-table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Keyword</th>
+                    <th>Needs review</th>
+                    <th>AI approved</th>
+                    <th>AI rejected</th>
+                    <th>User approved</th>
+                    <th>User rejected</th>
+                    <th>Last searched</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {reviewableSummaries.map((summary) => (
+                    <tr key={summary.keywordId}>
+                      <td>{[summary.topic, summary.location].filter(Boolean).join(" · ")}</td>
+                      <td>{summary.statusCounts.needs_review ?? 0}</td>
+                      <td>{summary.statusCounts.ai_approved ?? 0}</td>
+                      <td>{summary.statusCounts.ai_rejected ?? 0}</td>
+                      <td>{summary.statusCounts.approved ?? 0}</td>
+                      <td>{summary.statusCounts.rejected ?? 0}</td>
+                      <td>{formatDate(summary.lastDiscoveredAt)}</td>
+                      <td>
+                        <Link
+                          className="button button-secondary"
+                          href={`/sources/review/${summary.keywordId}`}
+                        >
+                          Review
+                        </Link>
+                      </td>
+                    </tr>
                   ))}
-                </select>
-              </label>
-              <label className="field">
-                <span className="label">Run</span>
-                <select className="input" name="filterRunId" defaultValue={params.filterRunId ?? ""}>
-                  <option value="">Any run</option>
-                  {runs.map((run) => (
-                    <option value={run.id} key={run.id}>
-                      {formatDate(run.started_at)} — {run.status}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="field">
-                <span className="label">Min. confidence</span>
-                <input
-                  className="input"
-                  type="number"
-                  name="minConfidence"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  defaultValue={params.minConfidence ?? ""}
-                  placeholder="0.0 – 1.0"
-                />
-              </label>
-              <button className="button button-secondary fit-content" type="submit">
-                Apply filters
-              </button>
-            </form>
-
-            <ReviewQueue sources={reviewSources} discoveryInfo={discoveryInfo} />
-          </>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="empty-state">
+              <h3>Nothing to review yet</h3>
+              <p>Scan a keyword&apos;s sites first — verdicts land here once scanning finishes.</p>
+            </div>
+          )
         ) : (
           <>
             <p className="panel-copy">

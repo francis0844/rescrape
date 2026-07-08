@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getAppSettings } from "@/lib/app-data";
+import { getAppSettings, getSourceIdsForKeywords } from "@/lib/app-data";
 import type { SearchProvider } from "@/lib/providers/search-provider";
 import { getEnabledSearchProviders, getVerificationAgent } from "@/lib/providers/registry";
 import type { VerificationAgent, VerificationRequest } from "@/lib/providers/verification-agent";
@@ -13,6 +13,8 @@ export type ScanJobRow = {
   total_sites: number;
   processed_sites: number;
   current_source_id: string | null;
+  /** Null = global scope (every eligible source). Non-null = scoped to these keywords' sources. */
+  keyword_ids: string[] | null;
   started_at: string | null;
   updated_at: string;
 };
@@ -25,13 +27,32 @@ type EligibleSourceRow = {
 const RETRY_DELAYS_MS = [500, 1500];
 const ELIGIBLE_STATUSES = ["pending", "scanning"];
 
-async function countEligible(sinceIso: string): Promise<number> {
+/** Resolves a job's keyword scope to a concrete source-id allowlist, or null for global scope. */
+async function resolveScope(keywordIds: string[] | null): Promise<string[] | null> {
+  if (!keywordIds || !keywordIds.length) {
+    return null;
+  }
+
+  return getSourceIdsForKeywords(keywordIds);
+}
+
+async function countEligible(sinceIso: string, scopedSourceIds: string[] | null): Promise<number> {
+  if (scopedSourceIds && !scopedSourceIds.length) {
+    return 0;
+  }
+
   const supabase = createSupabaseServiceRoleClient();
-  const { count, error } = await supabase
+  let query = supabase
     .from("sources")
     .select("id", { count: "exact", head: true })
     .in("status", ELIGIBLE_STATUSES)
     .or(`last_scanned_at.is.null,last_scanned_at.lt.${sinceIso}`);
+
+  if (scopedSourceIds) {
+    query = query.in("id", scopedSourceIds);
+  }
+
+  const { count, error } = await query;
 
   if (error) {
     throw error;
@@ -40,15 +61,29 @@ async function countEligible(sinceIso: string): Promise<number> {
   return count ?? 0;
 }
 
-async function fetchNextEligible(sinceIso: string, limit: number): Promise<EligibleSourceRow[]> {
+async function fetchNextEligible(
+  sinceIso: string,
+  limit: number,
+  scopedSourceIds: string[] | null
+): Promise<EligibleSourceRow[]> {
+  if (scopedSourceIds && !scopedSourceIds.length) {
+    return [];
+  }
+
   const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("sources")
     .select("id, site_url")
     .in("status", ELIGIBLE_STATUSES)
     .or(`last_scanned_at.is.null,last_scanned_at.lt.${sinceIso}`)
     .order("first_discovered_at", { ascending: true })
     .limit(limit);
+
+  if (scopedSourceIds) {
+    query = query.in("id", scopedSourceIds);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw error;
@@ -216,8 +251,13 @@ export async function rescanSource(sourceId: string): Promise<void> {
   await processSource(source as ProcessableSource, settings, extractProvider, agent);
 }
 
-/** Resumes the active job if one exists, otherwise starts a fresh one over currently eligible sources. */
-export async function ensureScanJob(): Promise<ScanJobRow> {
+/**
+ * Resumes the active job if one exists (regardless of the newly requested scope — only one
+ * job runs at a time, matching the app's deliberate, budget-controlled design), otherwise
+ * starts a fresh one. `keywordIds` scopes the new job to those keywords' sources only;
+ * omit/empty for the original global "scan everything eligible" behavior.
+ */
+export async function ensureScanJob(keywordIds?: string[]): Promise<ScanJobRow> {
   const supabase = createSupabaseServiceRoleClient();
   const { data: existing, error: existingError } = await supabase
     .from("scan_jobs")
@@ -236,7 +276,9 @@ export async function ensureScanJob(): Promise<ScanJobRow> {
   }
 
   const startedAt = new Date().toISOString();
-  const totalSites = await countEligible(startedAt);
+  const scopedKeywordIds = keywordIds && keywordIds.length ? keywordIds : null;
+  const scopedSourceIds = await resolveScope(scopedKeywordIds);
+  const totalSites = await countEligible(startedAt, scopedSourceIds);
 
   const { data: created, error: createError } = await supabase
     .from("scan_jobs")
@@ -244,6 +286,7 @@ export async function ensureScanJob(): Promise<ScanJobRow> {
       status: "running",
       total_sites: totalSites,
       processed_sites: 0,
+      keyword_ids: scopedKeywordIds,
       started_at: startedAt
     })
     .select("*")
@@ -287,7 +330,8 @@ export async function runScanChunk(jobId: string): Promise<ScanChunkResult> {
 
   const settings = await getAppSettings();
   const sinceIso = job.started_at ?? new Date(0).toISOString();
-  const batch = await fetchNextEligible(sinceIso, settings.chunk_size);
+  const scopedSourceIds = await resolveScope(job.keyword_ids);
+  const batch = await fetchNextEligible(sinceIso, settings.chunk_size, scopedSourceIds);
 
   if (!batch.length) {
     const { data: finished, error: finishError } = await supabase
@@ -324,7 +368,7 @@ export async function runScanChunk(jobId: string): Promise<ScanChunkResult> {
     processed += 1;
   }
 
-  const remaining = await countEligible(sinceIso);
+  const remaining = await countEligible(sinceIso, scopedSourceIds);
   const { data: updatedJob, error: updateError } = await supabase
     .from("scan_jobs")
     .update({

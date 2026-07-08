@@ -1,6 +1,10 @@
-import { ScanPanel } from "@/components/scan-panel";
+import { ScanKeywordSelector } from "@/components/scan-keyword-selector";
 import { StatusMessage } from "@/components/status-message";
-import { getActiveScanJob, getPendingSourceCount } from "@/lib/app-data";
+import {
+  getActiveScanJob,
+  getKeywordSearchSummaries,
+  getPendingSourceCount
+} from "@/lib/app-data";
 
 export const dynamic = "force-dynamic";
 
@@ -11,10 +15,11 @@ type ScanPageProps = {
 };
 
 export default async function ScanPage({ searchParams }: ScanPageProps) {
-  const [{ message }, pendingCount, activeJob] = await Promise.all([
+  const [{ message }, pendingCount, activeJob, summaries] = await Promise.all([
     searchParams,
     getPendingSourceCount(),
-    getActiveScanJob()
+    getActiveScanJob(),
+    getKeywordSearchSummaries()
   ]);
 
   return (
@@ -22,14 +27,16 @@ export default async function ScanPage({ searchParams }: ScanPageProps) {
       <header className="page-header">
         <h1 className="page-title">Scan</h1>
         <p className="page-kicker">
-          Step 2 of 3: crawl each pending site and ask the verification agent for a judgment.
+          Step 2 of 3: pick which searched keywords to scan, then crawl each pending site and
+          ask the verification agent for a judgment.
         </p>
       </header>
 
       <StatusMessage message={message} />
 
-      <ScanPanel
-        pendingCount={pendingCount}
+      <ScanKeywordSelector
+        summaries={summaries}
+        globalPendingCount={pendingCount}
         initialJob={
           activeJob
             ? {

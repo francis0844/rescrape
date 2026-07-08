@@ -4,8 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import { ensureScanJob, getScanJob, runScanChunk } from "@/lib/verification/scan-worker";
 
-export async function startScan() {
-  const job = await ensureScanJob();
+export async function startScan(keywordIds?: string[]) {
+  const job = await ensureScanJob(keywordIds);
   revalidatePath("/sources/scan");
   return job;
 }

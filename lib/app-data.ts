@@ -84,9 +84,30 @@ export type ScanJobRow = {
   total_sites: number;
   processed_sites: number;
   current_source_id: string | null;
+  keyword_ids: string[] | null;
   started_at: string | null;
   updated_at: string;
 };
+
+export type KeywordScanState = "unscanned" | "scanning" | "partially_scanned" | "scanned";
+
+export type KeywordSearchSummary = {
+  keywordId: string;
+  topic: string;
+  location: string | null;
+  totalSources: number;
+  statusCounts: Partial<Record<SourceRow["status"], number>>;
+  scanState: KeywordScanState;
+  lastDiscoveredAt: string | null;
+};
+
+const RESOLVED_STATUSES: SourceRow["status"][] = [
+  "ai_approved",
+  "ai_rejected",
+  "needs_review",
+  "approved",
+  "rejected"
+];
 
 export const defaultSettings: AppSettingsRow = {
   id: "local-default",
@@ -209,6 +230,27 @@ export async function getRecentSearchRuns(limit = 5): Promise<SearchRunRow[]> {
   }
 
   return (data ?? []) as SearchRunRow[];
+}
+
+/** No limit — used only for the full CSV export, not for on-screen rendering. */
+export async function getAllSourcesForExport(): Promise<SourceRow[]> {
+  if (!hasSupabaseServiceEnv()) {
+    return [];
+  }
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from("sources")
+    .select(
+      "id, site_url, domain, title, snippet, status, ai_verdict, ai_confidence, ai_reason, extractable_fields, sample_preview, evidence_urls, human_note, scan_step, first_discovered_at, last_scanned_at"
+    )
+    .order("first_discovered_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as SourceRow[];
 }
 
 export async function getSources(limit = 50): Promise<SourceRow[]> {
@@ -409,7 +451,9 @@ export async function getActiveScanJob(): Promise<ScanJobRow | null> {
   const supabase = createSupabaseServiceRoleClient();
   const { data, error } = await supabase
     .from("scan_jobs")
-    .select("id, status, total_sites, processed_sites, current_source_id, started_at, updated_at")
+    .select(
+      "id, status, total_sites, processed_sites, current_source_id, keyword_ids, started_at, updated_at"
+    )
     .in("status", ["queued", "running", "paused"])
     .order("started_at", { ascending: false })
     .limit(1)
@@ -420,6 +464,161 @@ export async function getActiveScanJob(): Promise<ScanJobRow | null> {
   }
 
   return (data as ScanJobRow) ?? null;
+}
+
+type KeywordDiscoveryJoinRow = {
+  keyword_id: string;
+  source_id: string;
+  discovered_at: string;
+  keywords: { id: string; topic: string; location: string | null } | null;
+  sources: { status: SourceRow["status"] } | null;
+};
+
+function computeScanState(statuses: SourceRow["status"][]): KeywordScanState {
+  if (statuses.every((status) => status === "pending")) {
+    return "unscanned";
+  }
+
+  if (statuses.some((status) => status === "scanning")) {
+    return "scanning";
+  }
+
+  if (statuses.every((status) => RESOLVED_STATUSES.includes(status))) {
+    return "scanned";
+  }
+
+  return "partially_scanned";
+}
+
+/** One row per keyword that has ever discovered at least one source, aggregated at POC scale in JS. */
+export async function getKeywordSearchSummaries(): Promise<KeywordSearchSummary[]> {
+  if (!hasSupabaseServiceEnv()) {
+    return [];
+  }
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from("source_discoveries")
+    .select(
+      "keyword_id, source_id, discovered_at, keywords(id, topic, location), sources(status)"
+    )
+    .order("discovered_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const byKeyword = new Map<
+    string,
+    {
+      topic: string;
+      location: string | null;
+      sources: Map<string, SourceRow["status"]>;
+      lastDiscoveredAt: string | null;
+    }
+  >();
+
+  for (const row of (data ?? []) as unknown as KeywordDiscoveryJoinRow[]) {
+    if (!row.keywords || !row.sources) {
+      continue;
+    }
+
+    const entry = byKeyword.get(row.keyword_id) ?? {
+      topic: row.keywords.topic,
+      location: row.keywords.location,
+      sources: new Map<string, SourceRow["status"]>(),
+      lastDiscoveredAt: row.discovered_at
+    };
+
+    entry.sources.set(row.source_id, row.sources.status);
+
+    if (!entry.lastDiscoveredAt || row.discovered_at > entry.lastDiscoveredAt) {
+      entry.lastDiscoveredAt = row.discovered_at;
+    }
+
+    byKeyword.set(row.keyword_id, entry);
+  }
+
+  return [...byKeyword.entries()]
+    .map(([keywordId, entry]) => {
+      const statuses = [...entry.sources.values()];
+      const statusCounts: Partial<Record<SourceRow["status"], number>> = {};
+
+      for (const status of statuses) {
+        statusCounts[status] = (statusCounts[status] ?? 0) + 1;
+      }
+
+      return {
+        keywordId,
+        topic: entry.topic,
+        location: entry.location,
+        totalSources: statuses.length,
+        statusCounts,
+        scanState: computeScanState(statuses),
+        lastDiscoveredAt: entry.lastDiscoveredAt
+      };
+    })
+    .sort((a, b) => (b.lastDiscoveredAt ?? "").localeCompare(a.lastDiscoveredAt ?? ""));
+}
+
+export async function getKeywordById(keywordId: string): Promise<KeywordRow | null> {
+  if (!hasSupabaseServiceEnv()) {
+    return null;
+  }
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from("keywords")
+    .select("id, topic, location, notes, active, created_at, updated_at")
+    .eq("id", keywordId)
+    .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return (data as KeywordRow) ?? null;
+}
+
+export async function getSourceIdsForKeywords(keywordIds: string[]): Promise<string[]> {
+  if (!hasSupabaseServiceEnv() || !keywordIds.length) {
+    return [];
+  }
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from("source_discoveries")
+    .select("source_id")
+    .in("keyword_id", keywordIds);
+
+  if (error) {
+    throw error;
+  }
+
+  return [...new Set((data ?? []).map((row) => row.source_id as string))];
+}
+
+export async function getSourcesForKeyword(keywordId: string): Promise<SourceRow[]> {
+  const sourceIds = await getSourceIdsForKeywords([keywordId]);
+
+  if (!sourceIds.length) {
+    return [];
+  }
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from("sources")
+    .select(
+      "id, site_url, domain, title, snippet, status, ai_verdict, ai_confidence, ai_reason, extractable_fields, sample_preview, evidence_urls, human_note, scan_step, first_discovered_at, last_scanned_at"
+    )
+    .in("id", sourceIds)
+    .order("first_discovered_at", { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []) as SourceRow[];
 }
 
 export function normalizeKeywordKey(topic: string, location: string | null | undefined) {
