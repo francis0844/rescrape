@@ -49,6 +49,10 @@
 ## Milestone 5 — UX standard: loading states, backend-status feedback, motion
 - [x] **T5.1** Make every mutating action in the app (Keywords CRUD, Settings forms, run search, scan-all-sites, review actions incl. bulk, auth forms) show an explicit in-flight loading state and a clear post-action result, plus simple, purposeful motion app-wide.
 
+## Milestone 6 — Sources IA split + keyword-scoped search
+- [~] **T6.1** Let the operator pick which specific active keywords a search run uses, instead of always firing all active keywords. *Intent: add a keyword multi-select (checkboxes, default all-checked, "select all/none") to the run-search form; `runSearch` action collects checked `keywordIds` and passes them through `runDiscoverySearch(options)`; server validates at least one keyword is selected.*
+- [~] **T6.2** Split the single Sources page into three real pages/routes — Search (run search + candidate list), Scan (scan-all-sites + live progress), Review (review queue + Approved tab) — replacing the query-param tab pattern. *Intent: new routes `/sources/search`, `/sources/scan`, `/sources/review`; `/sources` redirects to `/sources/search`; update sidebar nav to list Search/Scan/Review as distinct items; update CONTEXT_PLAN §5 IA line to match, since the product owner is explicitly overriding the original "tabs on one table" spec.*
+
 ---
 
 ## Session log
