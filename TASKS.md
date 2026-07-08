@@ -53,6 +53,12 @@
 - [x] **T6.1** Let the operator pick which specific active keywords a search run uses, instead of always firing all active keywords.
 - [x] **T6.2** Split the single Sources page into three real pages/routes — Search (run search + candidate list), Scan (scan-all-sites + live progress), Review (review queue + Approved tab) — replacing the query-param tab pattern.
 
+## Milestone 7 — Keyword-centric drill-down + scoped scanning + CSV export
+- [~] **T7.1** Search/Scan/Review all show a "searched keywords" list first (aggregate counts + scan/review state per keyword) instead of a flat source table; clicking a keyword drills into that keyword's sources, with a way back. *Intent: `getKeywordSearchSummaries()` + `getSourcesForKeyword()` in lib/app-data.ts (aggregate `source_discoveries` joins, computed client-side at POC scale); new `/sources/search/[keywordId]`, `/sources/scan/[keywordId]`, `/sources/review/[keywordId]` detail routes; Search/Scan/Review top-level pages replaced with keyword-summary tables.*
+- [~] **T7.2** Scope scanning to user-selected searched keywords (checkbox multi-select on the Scan page, mirroring the Search page's KeywordPicker), instead of only a global "scan everything pending." Keywords with no scan yet show "unscanned"; AI verdicts only appear once that keyword's sources are actually scanned. *Intent: additive migration `scan_jobs.keyword_ids uuid[] null` (null = global scope, preserves old behavior); scan-worker's eligibility queries filter by `source_discoveries` when a job is keyword-scoped; one active job at a time still (existing invariant), now optionally scoped at creation.*
+- [~] **T7.3** CSV export on the Review page — always exports every source, full search+scan+review data (site URL, status, AI verdict/confidence/reason, extractable fields, evidence URLs, discovering keyword(s)/run(s), human note, timestamps). *Intent: `GET /api/export/sources` route handler streaming `text/csv` with `Content-Disposition: attachment`, linked from a button on Review.*
+- [~] **T7.4** Cosmetic: human-set terminal states display as "User Approved" / "User Rejected" in the UI (status values in the DB stay `approved`/`rejected` — no migration, no state-machine change).
+
 ---
 
 ## Session log
