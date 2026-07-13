@@ -184,7 +184,11 @@ export async function getAppSettings(): Promise<AppSettingsRow> {
       .single();
 
     if (insertError) {
-      throw insertError;
+      // A misconfigured SUPABASE_SERVICE_ROLE_KEY (not the real service_role secret)
+      // can make this insert fail under RLS even though a settings row already exists
+      // and is just hidden from the acting role. Never let that crash the page.
+      console.error("getAppSettings: failed to create default app_settings row", insertError);
+      return defaultSettings;
     }
 
     return inserted as AppSettingsRow;
