@@ -58,6 +58,7 @@
 - [x] **T7.2** Scope scanning to user-selected searched keywords (checkbox multi-select on the Scan page, mirroring the Search page's KeywordPicker), instead of only a global "scan everything pending." Keywords with no scan yet show "unscanned"; AI verdicts only appear once that keyword's sources are actually scanned.
 - [x] **T7.3** CSV export on the Review page — always exports every source, full search+scan+review data (site URL, status, AI verdict/confidence/reason, extractable fields, evidence URLs, discovering keyword(s)/run(s), human note, timestamps).
 - [x] **T7.4** Cosmetic: human-set terminal states display as "User Approved" / "User Rejected" in the UI (status values in the DB stay `approved`/`rejected` — no migration, no state-machine change).
+- [~] **T7.5** Hardening: `getAppSettings()`'s insert-default-row fallback must never crash a whole page. *Intent: production hit "new row violates row-level security policy for table app_settings" — root cause is `SUPABASE_SERVICE_ROLE_KEY` on Vercel not being the real service_role secret (confirmed `service_role` still has `rolbypassrls=true` in Postgres, so a genuine service-role request could never hit this error), a deployment config issue outside this repo. Regardless, wrap the insert-if-missing path in a try/catch that falls back to `defaultSettings` instead of throwing, so a bad env var degrades gracefully instead of taking down the page.*
 
 ---
 
