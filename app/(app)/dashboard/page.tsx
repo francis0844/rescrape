@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight, Check } from "lucide-react";
 
 import { getRecentSearchRuns, getSourceStatusCounts } from "@/lib/app-data";
 
@@ -35,11 +36,63 @@ export default async function DashboardPage() {
   return (
     <div className="page-frame stack-xl">
       <header className="page-header">
-        <h1 className="page-title">Dashboard</h1>
+        <p className="page-eyebrow page-eyebrow-live">Pipeline overview</p>
+        <h1 className="page-title">From public sources to governed data</h1>
         <p className="page-kicker">
-          Where every candidate site currently stands, and what discovery has run recently.
+          Control where research starts, preserve evidence during extraction, then approve where records are delivered.
         </p>
       </header>
+
+      <section className="pipeline-overview" aria-label="Three-phase product journey">
+        <div className="overview-phase" data-state="live">
+          <div className="overview-phase-heading">
+            <span className="overview-phase-number">01</span>
+            <span className="phase-status" data-status="live">Live</span>
+          </div>
+          <div>
+            <h2>Find trustworthy sources</h2>
+            <p>Search within explicit boundaries, scan candidates, and let a human approve the source list.</p>
+          </div>
+          <ul>
+            <li><Check size={14} /> Governed search providers</li>
+            <li><Check size={14} /> Bounded verification</li>
+            <li><Check size={14} /> Human source approval</li>
+          </ul>
+          <Link href="/sources/search">Open source searching <ArrowRight size={15} /></Link>
+        </div>
+        <div className="overview-phase" data-state="preview">
+          <div className="overview-phase-heading">
+            <span className="overview-phase-number">02</span>
+            <span className="phase-status" data-status="preview">Preview</span>
+          </div>
+          <div>
+            <h2>Extract structured records</h2>
+            <p>Define the fields you need, extract only from approved sources, and retain supporting evidence.</p>
+          </div>
+          <ul>
+            <li><Check size={14} /> Reusable extraction schema</li>
+            <li><Check size={14} /> Evidence per record</li>
+            <li><Check size={14} /> Review uncertain output</li>
+          </ul>
+          <Link href="/extraction/jobs">View extraction prototype <ArrowRight size={15} /></Link>
+        </div>
+        <div className="overview-phase" data-state="preview">
+          <div className="overview-phase-heading">
+            <span className="overview-phase-number">03</span>
+            <span className="phase-status" data-status="preview">Preview</span>
+          </div>
+          <div>
+            <h2>Deliver approved data</h2>
+            <p>Map reviewed records to CSV, email, messaging, webhooks, sheets, or future destinations.</p>
+          </div>
+          <ul>
+            <li><Check size={14} /> Destination field mapping</li>
+            <li><Check size={14} /> Scheduled or manual delivery</li>
+            <li><Check size={14} /> Final human approval</li>
+          </ul>
+          <Link href="/delivery/destinations">View delivery prototype <ArrowRight size={15} /></Link>
+        </div>
+      </section>
 
       <section className="panel stack-lg" aria-labelledby="counts-title">
         <div className="section-heading">
