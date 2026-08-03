@@ -44,7 +44,7 @@ export default function DestinationsPage() {
             <div className="mapping-table" role="table" aria-label="Field mapping preview">
               <div className="mapping-row mapping-header" role="row"><span>Extracted field</span><span aria-hidden="true" /><span>Outgoing column</span><span>Include</span></div>
               {[
-                ["title", "Record title"], ["published_date", "Published date"], ["location", "Location"], ["summary", "Summary"], ["source_url", "Source URL"], ["source_evidence", "Evidence"]
+                ["full_name", "Full name"], ["date_of_death", "Date of death"], ["published_date", "Published date"], ["location", "Location"], ["funeral_home", "Funeral home"], ["obituary_summary", "Obituary summary"], ["source_url", "Source URL"], ["source_evidence", "Evidence"]
               ].map(([source, output]) => (
                 <div className="mapping-row" role="row" key={source}>
                   <code>{source}</code><span aria-hidden="true">→</span><span className="static-select">{output}</span><span className="mapping-check"><Check size={14} /></span>
@@ -62,8 +62,8 @@ export default function DestinationsPage() {
       </section>
 
       <section className="prototype-section" aria-labelledby="delivery-preview-title">
-        <div className="section-heading"><div><h2 className="panel-title" id="delivery-preview-title">Delivery preview</h2><p className="panel-copy">First 5 of 1,248 records. No data will be sent from this prototype.</p></div><button className="button button-secondary" disabled type="button"><Mail size={16} /> Send test email</button></div>
-        <div className="preview-table-wrap"><table className="data-table"><thead><tr><th>Record title</th><th>Published date</th><th>Location</th><th>Summary</th><th>Source URL</th><th>Evidence</th></tr></thead><tbody>{prototypeRecords.map((record) => <tr key={record.id}><td>{record.title}</td><td>{record.published}</td><td>{record.location}</td><td>{record.evidence.slice(0, 72)}…</td><td>{record.source}</td><td>Retained</td></tr>)}</tbody></table></div>
+        <div className="section-heading"><div><h2 className="panel-title" id="delivery-preview-title">Delivery preview</h2><p className="panel-copy">First 5 of 1,248 fictional obituary records. No data will be sent from this prototype.</p></div><button className="button button-secondary" disabled type="button"><Mail size={16} /> Send test email</button></div>
+        <div className="preview-table-wrap"><table className="data-table"><thead><tr><th>Full name</th><th>Date of death</th><th>Location</th><th>Funeral home</th><th>Obituary summary</th><th>Source URL</th><th>Evidence</th></tr></thead><tbody>{prototypeRecords.map((record) => <tr key={record.id}><td>{record.title}</td><td>{record.died}</td><td>{record.location}</td><td>{record.funeralHome}</td><td>{record.summary}</td><td>{record.source}{record.sourcePath}</td><td>Retained</td></tr>)}</tbody></table></div>
         <div className="approval-strip"><div><span className="summary-label">Final control</span><strong>Human approval required before delivery</strong><p>The production version will show the destination, record count, and schedule one final time.</p></div><button className="button" disabled type="button">Request approval</button></div>
       </section>
     </div>

@@ -13,7 +13,7 @@ export default function ExtractionJobsPage() {
           <p className="page-eyebrow">Phase 02 · Static prototype</p>
           <h1 className="page-title">Extraction workspace</h1>
           <p className="page-kicker">
-            Define what to extract from human-approved sources, then retain evidence with every record.
+            Fictional Nebraska obituary sample: extract only from human-approved sources and retain evidence with every record.
           </p>
         </div>
         <button className="button" disabled type="button">
@@ -25,7 +25,7 @@ export default function ExtractionJobsPage() {
       <section className="job-summary" aria-label="Selected extraction job">
         <div>
           <span className="summary-label">Job</span>
-          <strong>Public information index</strong>
+          <strong>Nebraska obituary index</strong>
           <small>JOB-72F3C2</small>
         </div>
         <div>
@@ -35,7 +35,7 @@ export default function ExtractionJobsPage() {
         </div>
         <div>
           <span className="summary-label">Extraction rule</span>
-          <strong>7 structured fields</strong>
+          <strong>9 structured fields</strong>
           <small>Evidence required</small>
         </div>
         <div>
@@ -117,8 +117,8 @@ export default function ExtractionJobsPage() {
               <thead>
                 <tr>
                   <th>Status</th>
-                  <th>Record title</th>
-                  <th>Published</th>
+                  <th>Full name</th>
+                  <th>Date of death</th>
                   <th>Location</th>
                   <th>Source</th>
                   <th>Confidence</th>
@@ -129,7 +129,7 @@ export default function ExtractionJobsPage() {
                   <tr className={index === 0 ? "selected-table-row" : undefined} key={record.id}>
                     <td><span className="status-pill" data-status={record.status === "Verified" ? "approved" : "needs_review"}>{record.status}</span></td>
                     <td><strong>{record.title}</strong><small className="table-subtext">{record.id}</small></td>
-                    <td>{record.published}</td>
+                    <td>{record.died}</td>
                     <td>{record.location}</td>
                     <td>{record.source}</td>
                     <td>{record.confidence}</td>
@@ -149,9 +149,11 @@ export default function ExtractionJobsPage() {
             </div>
             <dl className="record-details">
               <div><dt>Status</dt><dd><span className="status-pill" data-status="needs_review">Needs review</span></dd></div>
+              <div><dt>Date of birth</dt><dd>{selected.born}</dd></div>
+              <div><dt>Date of death</dt><dd>{selected.died}</dd></div>
               <div><dt>Published date</dt><dd>{selected.published}</dd></div>
               <div><dt>Location</dt><dd>{selected.location}</dd></div>
-              <div><dt>Category</dt><dd>{selected.category}</dd></div>
+              <div><dt>Funeral home</dt><dd>{selected.funeralHome}</dd></div>
               <div><dt>Confidence</dt><dd>{selected.confidence}</dd></div>
             </dl>
             <div className="evidence-block">

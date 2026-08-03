@@ -11,7 +11,7 @@ export default function ExtractionRecordsPage() {
         <div>
           <p className="page-eyebrow">Phase 02 · Static prototype</p>
           <h1 className="page-title">Extracted records</h1>
-          <p className="page-kicker">Review structured output and verify every claim against retained source evidence.</p>
+          <p className="page-kicker">Review fictional obituary records and verify every extracted fact against retained source evidence.</p>
         </div>
         <button className="button button-secondary" disabled type="button"><Download size={16} /> Export selection</button>
       </header>
@@ -29,13 +29,13 @@ export default function ExtractionRecordsPage() {
       <div className="records-inspector-layout records-page-layout">
         <section className="preview-table-wrap" aria-label="Extracted record list">
           <table className="data-table records-table">
-            <thead><tr><th>Status</th><th>Record title</th><th>Published</th><th>Location</th><th>Category</th><th>Source</th><th>Confidence</th></tr></thead>
+            <thead><tr><th>Status</th><th>Full name</th><th>Date of death</th><th>Location</th><th>Funeral home</th><th>Source</th><th>Confidence</th></tr></thead>
             <tbody>
               {prototypeRecords.map((record, index) => (
                 <tr className={index === 1 ? "selected-table-row" : undefined} key={record.id}>
                   <td><span className="status-pill" data-status={record.status === "Verified" ? "approved" : "needs_review"}>{record.status}</span></td>
                   <td><strong>{record.title}</strong><small className="table-subtext">{record.id}</small></td>
-                  <td>{record.published}</td><td>{record.location}</td><td>{record.category}</td><td>{record.source}</td><td>{record.confidence}</td>
+                  <td>{record.died}</td><td>{record.location}</td><td>{record.funeralHome}</td><td>{record.source}</td><td>{record.confidence}</td>
                 </tr>
               ))}
             </tbody>
@@ -45,13 +45,15 @@ export default function ExtractionRecordsPage() {
         <aside className="record-inspector record-inspector-tall">
           <div className="inspector-heading"><div><span className="summary-label">Record {selected.id}</span><h2>{selected.title}</h2></div><span className="status-pill" data-status="approved">Verified</span></div>
           <dl className="record-details">
+            <div><dt>Date of birth</dt><dd>{selected.born}</dd></div>
+            <div><dt>Date of death</dt><dd>{selected.died}</dd></div>
             <div><dt>Published date</dt><dd>{selected.published}</dd></div>
             <div><dt>Location</dt><dd>{selected.location}</dd></div>
-            <div><dt>Category</dt><dd>{selected.category}</dd></div>
-            <div><dt>Source URL</dt><dd><a href="#source-preview">https://{selected.source}/records/quarterly-release</a></dd></div>
+            <div><dt>Funeral home</dt><dd>{selected.funeralHome}</dd></div>
+            <div><dt>Source URL</dt><dd><a href="#source-preview">https://{selected.source}{selected.sourcePath}</a></dd></div>
           </dl>
           <div className="evidence-block" id="source-preview"><span className="summary-label">Source evidence</span><p>{selected.evidence}</p></div>
-          <div className="evidence-block"><span className="summary-label">Extraction rationale</span><p>The publication date and title are stated directly. Location coverage is explicit in the accompanying directory metadata.</p></div>
+          <div className="evidence-block"><span className="summary-label">Extraction rationale</span><p>The full name, date of death, Lincoln location, and funeral home are stated directly in the obituary passage.</p></div>
           <div className="provenance-stack">
             <p><Check size={15} /> Source was approved in Phase 1</p>
             <p><Check size={15} /> Required fields are present</p>
